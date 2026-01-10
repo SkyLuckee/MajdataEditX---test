@@ -242,6 +242,9 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="ConnectFail" xml:space="preserve">
     <value>连接失败！原因：{0}</value>
   </data>
+  <data name="ConnectionClosed" xml:space="preserve">
+    <value>连接已关闭，原因：{0}</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -610,7 +613,7 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="UserLeft" xml:space="preserve">
     <value>{0} 离开了谱面共享 {1}</value>
   </data>
-  <data name="ConnectionClosed" xml:space="preserve">
-    <value>连接已关闭，原因：{0}</value>
+  <data name="ToggleShareFail" xml:space="preserve">
+    <value>启动/停止谱面共享失败！原因：{0}</value>
   </data>
 </root>

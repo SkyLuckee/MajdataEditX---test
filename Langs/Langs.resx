@@ -237,4 +237,7 @@
   <data name="ConnectionClosed" xml:space="preserve">
     <value />
   </data>
+  <data name="ToggleShareFail" xml:space="preserve">
+    <value />
+  </data>
 </root>

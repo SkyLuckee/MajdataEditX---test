@@ -233,7 +233,16 @@ public partial class MainWindow : Window
     }
     private async void Menu_ToggleChartShare_Click(object sender, RoutedEventArgs e)
     {
-        await ToggleChartShare(true);
+        try
+        {
+            await ToggleChartShare(true);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(string.Format(GetLocalizedString("ToggleShareFail"), ex.Message + ex.InnerException?.Message), GetLocalizedString("Error"));
+            _client = null;
+            return;
+        }
     }
     private async void Menu_ConnectChartShare_Click(object sender, RoutedEventArgs e)
     {
@@ -250,9 +259,9 @@ public partial class MainWindow : Window
                 {
                     await ConnectToChartServer(ip, port);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    MessageBox.Show(string.Format(GetLocalizedString("ConnectFail"), e.Message), GetLocalizedString("Error"));
+                    MessageBox.Show(string.Format(GetLocalizedString("ConnectFail"), ex.Message + ex.InnerException?.Message), GetLocalizedString("Error"));
                     _client = null;
                     return;
                 }
