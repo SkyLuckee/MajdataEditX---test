@@ -35,6 +35,14 @@ public partial class MainWindow : Window
             RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
         }
         errorListWindow = new();
+        progressIndicator = new Progress<int>(value =>
+        {
+            Menu_ProcessStatus.Value = value;
+            Debug.WriteLine(value);
+            if (value >= 100) Menu_ProcessStatus.Visibility = Visibility.Collapsed;
+            else Menu_ProcessStatus.Visibility = Visibility.Visible;
+        });
+        updateprog = progressIndicator.Report;
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -82,7 +90,7 @@ public partial class MainWindow : Window
                     // 尝试打开上次未正常关闭的谱面 然后再打开恢复页面
                     try
                     {
-                        InitFromFile(lastEditPath);
+                        await InitFromFile(lastEditPath);
                     }
                     catch (Exception error)
                     {
@@ -158,7 +166,7 @@ public partial class MainWindow : Window
         e.Effects = DragDropEffects.Move;
     }
 
-    private void Grid_Drop(object sender, DragEventArgs e)
+    private async void Grid_Drop(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
             //Console.WriteLine(e.Data.GetData(DataFormats.FileDrop).ToString());
@@ -171,7 +179,7 @@ public partial class MainWindow : Window
                         if (!AskSave())
                             return;
                     var fileInfo = new FileInfo(path);
-                    InitFromFile(fileInfo.DirectoryName!);
+                    await InitFromFile(fileInfo.DirectoryName!);
                 }
             }
     }
@@ -184,7 +192,7 @@ public partial class MainWindow : Window
 
     #region MENU BARS
 
-    private void Menu_New_Click(object sender, RoutedEventArgs e)
+    private async void Menu_New_Click(object sender, RoutedEventArgs e)
     {
         if (!isSaved)
             if (!AskSave())
@@ -197,11 +205,11 @@ public partial class MainWindow : Window
         {
             var fileInfo = new FileInfo(openFileDialog.FileName);
             CreateNewFumen(fileInfo.DirectoryName!);
-            InitFromFile(fileInfo.DirectoryName!);
+            await InitFromFile(fileInfo.DirectoryName!);
         }
     }
 
-    private void Menu_Open_Click(object sender, RoutedEventArgs e)
+    private async void Menu_Open_Click(object sender, RoutedEventArgs e)
     {
         if (!isSaved)
             if (!AskSave())
@@ -213,7 +221,7 @@ public partial class MainWindow : Window
         if ((bool)openFileDialog.ShowDialog()!)
         {
             var fileInfo = new FileInfo(openFileDialog.FileName);
-            InitFromFile(fileInfo.DirectoryName!);
+            await InitFromFile(fileInfo.DirectoryName!);
         }
     }
 
@@ -255,18 +263,10 @@ public partial class MainWindow : Window
         {
             var window = new ConnectShare(async (ip, port) =>
             {
-                try
-                {
-                    await ConnectToChartServer(ip, port);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(string.Format(GetLocalizedString("ConnectFail"), ex.Message + ex.InnerException?.Message), GetLocalizedString("Error"));
-                    _client = null;
-                    return;
-                }
-                await Dispatcher.InvokeAsync(() =>
+                if (await ConnectToChartServer(ip, port))
+                    await Dispatcher.InvokeAsync(() =>
                         Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare"));
+                else return;
             })
             {
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
@@ -554,14 +554,14 @@ public partial class MainWindow : Window
         ToggleStop();
     }
 
-    private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var i = LevelSelector.SelectedIndex;
         LoadRawFumenText(SimaiProcess.fumens[i]);
         selectedDifficulty = i;
         LevelTextBox.Text = SimaiProcess.levels[selectedDifficulty];
         SetSavedState(true);
-        SimaiProcess.Serialize(GetRawFumenText());
+        await SimaiProcess.Serialize(GetRawFumenText());
         DrawWave();
         SyntaxCheck();
     }
@@ -573,13 +573,13 @@ public partial class MainWindow : Window
         SimaiProcess.levels[selectedDifficulty] = LevelTextBox.Text;
     }
 
-    private void OffsetTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    private async void OffsetTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         SetSavedState(false);
         try
         {
             SimaiProcess.first = float.Parse(OffsetTextBox.Text);
-            SimaiProcess.Serialize(GetRawFumenText());
+            await SimaiProcess.Serialize(GetRawFumenText());
             DrawWave();
         }
         catch
@@ -616,7 +616,7 @@ public partial class MainWindow : Window
 
     #region RichTextbox events
 
-    private void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
+    private async void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
         NoteNowText.Content = 
             (FumenContent.Text[..FumenContent.CaretIndex] //.Replace("\r", "") //没区别
@@ -624,7 +624,7 @@ public partial class MainWindow : Window
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;
         //TODO:这个应该换成用fumen text position来在已经serialized的timinglist里面找。。 然后直接去掉这个double的返回和position的入参。。。
-        var time = SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
+        var time = await SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
 
         //按住Ctrl，同时按下鼠标左键/上下左右方向键时，才改变进度，其他包含Ctrl的组合键不影响进度。
         if (Keyboard.Modifiers == ModifierKeys.Control && (
@@ -648,7 +648,7 @@ public partial class MainWindow : Window
 
         if (ShareMode && !_isRemoteUpdate)
         {
-            _client!.InvokeAsync(nameof(ChartHub.Moving), GetRawFumenPosition());
+            await _client!.InvokeAsync(nameof(ChartHub.Moving), GetRawFumenPosition());
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace MajdataEdit;
 
@@ -129,7 +130,7 @@ internal static class SimaiProcess
     /// <param name="text">fumen text</param>
     /// <param name="position">the position of the cusor, to get the return time</param>
     /// <returns>the song time at the position</returns>
-    public static double Serialize(string text, long position = 0)
+    public static async Task<double> Serialize(string text, long position = 0)
     {
         var _notelist = new List<SimaiTimingPoint>();
         var _timinglist = new List<SimaiTimingPoint>();
@@ -144,7 +145,8 @@ internal static class SimaiProcess
             var noteTemp = "";
             int Ycount = 0, Xcount = 0;
 
-            for (var i = 0; i < text.Length; i++)
+            var length = text.Length;
+            for (var i = 0; i < length; i++)
             {
                 if (text[i] == '|' && i + 1 < text.Length && text[i + 1] == '|')
                 {

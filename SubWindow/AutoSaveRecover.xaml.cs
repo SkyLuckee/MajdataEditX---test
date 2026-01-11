@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -224,7 +225,7 @@ public partial class AutoSaveRecover : Window
         SetRtbFumenContent(content);
     }
 
-    private void Btn_Recover_Click(object sender, RoutedEventArgs e)
+    private async void Btn_Recover_Click(object sender, RoutedEventArgs e)
     {
         var currentItem = RecoverList[currentSelectedIndex];
 
@@ -238,7 +239,7 @@ public partial class AutoSaveRecover : Window
         if (result == MessageBoxResult.No) return;
 
         Recoverer.RecoverFile(currentItem.Item1);
-        ((MainWindow)Owner).OpenFile(currentItem.Item1.RawPath!);
+        await ((MainWindow)Owner).OpenFile(currentItem.Item1.RawPath!);
         Close();
     }
 

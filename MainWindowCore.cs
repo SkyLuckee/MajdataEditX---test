@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Semver;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -19,6 +20,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Authentication;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -99,7 +101,7 @@ public partial class MainWindow : Window
     private HubConnection? _client;    // 客户端对象
     private bool _isRemoteUpdate = false; // 防死循环的锁
     private string _shadowText = ""; // 谱面文本同步缓冲
-    private diff_match_patch _dmp = new diff_match_patch();
+    private diff_match_patch _dmp = new();
     private readonly byte[] certBytes = new byte[] {
     48, 130, 2, 10, 2, 130, 2, 1, 0, 162, 108, 70, 147, 186, 10, 181,
     148, 40, 72, 232, 165, 67, 36, 174, 170, 138, 116, 59, 92, 233, 84, 241,
@@ -133,10 +135,11 @@ public partial class MainWindow : Window
     203, 161, 86, 240, 84, 41, 63, 106, 8, 163, 23, 55, 143, 65, 192, 4,
     150, 161, 20, 51, 103, 55, 162, 250, 184, 38, 134, 4, 253, 50, 223, 101,
     90, 153, 38, 20, 40, 110, 201, 51, 178, 34, 39, 188, 47, 210, 250, 31,
-    212, 43, 205, 157, 251, 63, 121, 199, 5, 2, 3, 1, 0, 1
-};
-
+    212, 43, 205, 157, 251, 63, 121, 199, 5, 2, 3, 1, 0, 1};
     private Dictionary<string, RemoteCursor> _cursors = new();
+
+    private IProgress<int> progressIndicator;
+    private Action<int> updateprog;
 
     //*TEXT CONTROL
     //内部完全用不含\r的文本来处理，牺牲一点性能换取牺牲一点可读性（bushi
@@ -257,7 +260,7 @@ public partial class MainWindow : Window
         }
     }
 
-    public void ScrollToFumenContentSelection(int positionX, int positionY)
+    public async void ScrollToFumenContentSelection(int positionX, int positionY)
     {
         // 这玩意用于其他窗口来滚动Scroll 因为涉及到好多变量都是private的
         SetRawFumenPosition(positionX, positionY);
@@ -266,7 +269,7 @@ public partial class MainWindow : Window
 
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;
-        var time = SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
+        var time = await SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
         SetBgmPosition(time);
         //Console.WriteLine("SelectionChanged");
         SimaiProcess.ClearNoteListPlayedState();
@@ -377,8 +380,10 @@ public partial class MainWindow : Window
         SetSavedState(true);
         TheWindow.Title = GetWindowsTitleString();
     }
-    private void InitFromFile(string path) //file name should not be included in path
+    private async Task InitFromFile(string path) //file name should not be included in path
     {
+        updateprog(0);
+
         if (ChartServer.App != null) _ = ToggleChartShare(); //不管了自生自灭吧
 
         if (soundSetting != null) soundSetting.Close();
@@ -400,6 +405,8 @@ public partial class MainWindow : Window
             MessageBox.Show(GetLocalizedString("NoMaidata_txt"), GetLocalizedString("Error"));
             return;
         }
+
+        updateprog(10);
 
         maidataDir = path;
         SafeTerminationDetector.Of().ChangePath(maidataDir);
@@ -443,7 +450,13 @@ public partial class MainWindow : Window
         ReadWaveFromFile();
         SimaiProcess.ClearData();
 
+        updateprog(30);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
         if (!SimaiProcess.ReadData(dataPath)) return;
+
+        updateprog(40);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
         if (Cover.Visibility == Visibility.Visible)
             ((Storyboard)Resources["CoverHide"]).Begin();
@@ -452,9 +465,13 @@ public partial class MainWindow : Window
         ReadSetting();
         LoadRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
         SeekTextFromTime();
-        SimaiProcess.Serialize(GetRawFumenText());
+        await SimaiProcess.Serialize(GetRawFumenText());
+
         FumenContent.Focus();
         DrawWave();
+
+        updateprog(90);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
         OffsetTextBox.Text = SimaiProcess.first.ToString();
 
@@ -470,15 +487,22 @@ public partial class MainWindow : Window
         SyntaxCheck();
 
         SetShareMode(false);
+
+        updateprog(100);
     }
 
     private async Task InitFromShare(string fileUrl, GuestInitDto data)
     {
+        updateprog(20);
+
         if (soundSetting != null) soundSetting.Close();
         if (editorSetting == null) ReadEditorSetting();
 
         var basePath = Environment.CurrentDirectory + "/Sharing";
         Directory.CreateDirectory(basePath); //防止没有Sharing文件夹
+
+        updateprog(25);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
         useOgg = data.UseOgg;
 
@@ -500,10 +524,16 @@ public partial class MainWindow : Window
             await stream.CopyToAsync(fs);
         }
 
+        updateprog(35);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
         //下载MajSettings
         string localSettingPath = Path.Combine(basePath, majSettingFilename);
         byte[] settingBytes = await httpClient.GetByteArrayAsync(fileUrl + "/" + majSettingFilename);
         await File.WriteAllBytesAsync(localSettingPath, settingBytes);
+
+        updateprog(45);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
         if (isHost) originMaidataDir = maidataDir;
         maidataDir = basePath;
@@ -525,6 +555,9 @@ public partial class MainWindow : Window
         if (info.freq != 44100) MessageBox.Show(GetLocalizedString("Warn44100Hz"), GetLocalizedString("Attention"));
         ReadWaveFromFile();
         SimaiProcess.ClearData();
+
+        updateprog(60);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
         //if (!SimaiProcess.ReadData(dataPath)) return;
         SimaiProcess.title = data.Name;
@@ -558,11 +591,17 @@ public partial class MainWindow : Window
 
         LoadRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
         SeekTextFromTime();
-        SimaiProcess.Serialize(GetRawFumenText());
+
+        updateprog(65);
+
+        await SimaiProcess.Serialize(GetRawFumenText());
         FumenContent.Focus();
         if (Cover.Visibility == Visibility.Visible)
             ((Storyboard)Resources["CoverHide"]).Begin();
         DrawWave();
+
+        updateprog(80);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
         OffsetTextBox.Text = SimaiProcess.first.ToString();
 
@@ -579,6 +618,8 @@ public partial class MainWindow : Window
         _shadowText = FumenContent.Text; // 影子文本和UI直接挂钩，没必要用不带\r的
 
         SetShareMode(true);
+
+        updateprog(100);
     }
 
     private void SetShareMode(bool state)
@@ -1274,7 +1315,7 @@ public partial class MainWindow : Window
         return localizedString ?? key;
     }
 
-    private void TogglePlay(PlayMethod playMethod = PlayMethod.Normal)
+    private async void TogglePlay(PlayMethod playMethod = PlayMethod.Normal)
     {
         if (Op_Button.IsEnabled == false) return;
 
@@ -1289,7 +1330,7 @@ public partial class MainWindow : Window
         isPlaying = true;
         isPlan2Stop = false;
         PlayAndPauseButton.Content = "  ▌▌ ";
-        var CusorTime = SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition()); //scan first
+        var CusorTime = await SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition()); //scan first
 
         //TODO: Moeying改一下你的generateSoundEffect然后把下面这行删了
         var isOpIncluded = playMethod == PlayMethod.Normal ? false : true;
@@ -1785,48 +1826,55 @@ public partial class MainWindow : Window
 
         void requestHandler(string response)
         {
-            UpdateCheckLock = false;
-            if (response == "ERROR")
+            try
             {
-                // 网络请求失败
-                if (!onStart) MessageBox.Show(GetLocalizedString("RequestFail"), GetLocalizedString("CheckUpdate"));
-                return;
-            }
-
-            var resJson = JsonConvert.DeserializeObject<JObject>(response)!;
-            var latestVersionString = resJson["tag_name"]!.ToString();
-            var releaseUrl = resJson["html_url"]!.ToString();
-
-            var latestVersion = oldVersionCompatible(latestVersionString);
-
-            if (latestVersion.ComparePrecedenceTo(MAJDATA_VERSION) > 0)
-            {
-                // 版本不同，需要更新
-                var msgboxText = string.Format(GetLocalizedString("NewVersionDetected"), latestVersionString,
-                    MAJDATA_VERSION_STRING);
-                if (onStart) msgboxText += "\n\n" + GetLocalizedString("AutoUpdateCheckTip");
-
-                var result = MessageBox.Show(
-                    msgboxText,
-                    GetLocalizedString("CheckUpdate"),
-                    MessageBoxButton.YesNo);
-                switch (result)
+                UpdateCheckLock = false;
+                if (response == "ERROR")
                 {
-                    case MessageBoxResult.Yes:
-                        var startInfo = new ProcessStartInfo(releaseUrl)
-                        {
-                            UseShellExecute = true
-                        };
-                        Process.Start(startInfo);
-                        break;
-                    case MessageBoxResult.No:
-                        break;
+                    // 网络请求失败
+                    if (!onStart) MessageBox.Show(GetLocalizedString("RequestFail"), GetLocalizedString("CheckUpdate"));
+                    return;
+                }
+
+                var resJson = JsonConvert.DeserializeObject<JObject>(response)!;
+                var latestVersionString = resJson["tag_name"]!.ToString();
+                var releaseUrl = resJson["html_url"]!.ToString();
+
+                var latestVersion = oldVersionCompatible(latestVersionString);
+
+                if (latestVersion.ComparePrecedenceTo(MAJDATA_VERSION) > 0)
+                {
+                    // 版本不同，需要更新
+                    var msgboxText = string.Format(GetLocalizedString("NewVersionDetected"), latestVersionString,
+                        MAJDATA_VERSION_STRING);
+                    if (onStart) msgboxText += "\n\n" + GetLocalizedString("AutoUpdateCheckTip");
+
+                    var result = MessageBox.Show(
+                        msgboxText,
+                        GetLocalizedString("CheckUpdate"),
+                        MessageBoxButton.YesNo);
+                    switch (result)
+                    {
+                        case MessageBoxResult.Yes:
+                            var startInfo = new ProcessStartInfo(releaseUrl)
+                            {
+                                UseShellExecute = true
+                            };
+                            Process.Start(startInfo);
+                            break;
+                        case MessageBoxResult.No:
+                            break;
+                    }
+                }
+                else
+                {
+                    // 没有新版本，可以不用更新
+                    if (!onStart) MessageBox.Show(GetLocalizedString("NoNewVersion"), GetLocalizedString("CheckUpdate"));
                 }
             }
-            else
+            catch (Exception)
             {
-                // 没有新版本，可以不用更新
-                if (!onStart) MessageBox.Show(GetLocalizedString("NoNewVersion"), GetLocalizedString("CheckUpdate"));
+                if (!onStart) MessageBox.Show(GetLocalizedString("RequestFail"), GetLocalizedString("CheckUpdate"));
             }
         }
 
@@ -1868,9 +1916,9 @@ public partial class MainWindow : Window
         return GetWindowsTitleString() + " - " + info;
     }
 
-    public void OpenFile(string path)
+    public async Task OpenFile(string path)
     {
-        InitFromFile(path);
+        await InitFromFile(path);
     }
 
     private async Task ToggleChartShare(bool initIfClose = false)
@@ -1896,7 +1944,7 @@ public partial class MainWindow : Window
             Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
             Menu_ConnectChartShare.IsEnabled = true;
 
-            if (initIfClose) InitFromFile(originMaidataDir);
+            if (initIfClose) await InitFromFile(originMaidataDir);
 
             return;
         }
@@ -1926,187 +1974,208 @@ public partial class MainWindow : Window
         Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare");
         Menu_ConnectChartShare.IsEnabled = false; //房主不能自己断掉与自己的连接
     }
-    private async Task ConnectToChartServer(string ip, int port)
+    // 返回是否连接成功
+    private async Task<bool> ConnectToChartServer(string ip, int port)
     {
-        if (_client != null)
+        try
         {
-            await _client.StartAsync();
-            return;
-        }
-
-        string hubUrl = $"https://{ip}:{port}/chartHub";
-        string fileUrl = $"https://{ip}:{port}/chartFiles";
-
-        _client = new HubConnectionBuilder()
-            .WithUrl(hubUrl, options =>
+            if (_client != null)
             {
-                options.HttpMessageHandlerFactory = (handler) =>
-                {
-                    if (handler is HttpClientHandler clientHandler)
-                    {
-                        clientHandler.ServerCertificateCustomValidationCallback =
-                            (message, cert, chain, errors) =>
-                            {
-                                if (cert == null) return false;
-                                return cert.GetPublicKey().SequenceEqual(certBytes);
-                            };
-                    }
-                    return handler;
-                };
+                await _client.StartAsync();
+                return false;
+            }
 
-                options.WebSocketConfiguration = sockets =>
+            string hubUrl = $"https://{ip}:{port}/chartHub";
+            string fileUrl = $"https://{ip}:{port}/chartFiles";
+
+            updateprog(0);
+
+            _client = new HubConnectionBuilder()
+                .WithUrl(hubUrl, options =>
                 {
-                    sockets.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => {
-                        if (cert == null) return false;
-                        return cert.GetPublicKey().SequenceEqual(certBytes);
+                    options.HttpMessageHandlerFactory = (handler) =>
+                    {
+                        if (handler is HttpClientHandler clientHandler)
+                        {
+                            clientHandler.ServerCertificateCustomValidationCallback =
+                                (message, cert, chain, errors) =>
+                                {
+                                    if (cert == null) return false;
+                                    return cert.GetPublicKey().SequenceEqual(certBytes);
+                                };
+                        }
+                        return handler;
                     };
-                };
-            })
-            .Build();
+
+                    options.WebSocketConfiguration = sockets =>
+                    {
+                        sockets.RemoteCertificateValidationCallback = (sender, cert, chain, errors) =>
+                        {
+                            if (cert == null) return false;
+                            return cert.GetPublicKey().SequenceEqual(certBytes);
+                        };
+                    };
+                })
+                .Build();
 
 
-        // 收到初始化数据 (文本、音频)
-        _client.On<GuestInitDto>(nameof(IEditorClient.OnJoined), (data) =>
-        {
-            Dispatcher.Invoke(async () =>
+            // 收到初始化数据 (文本、音频)
+            _client.On<GuestInitDto>(nameof(IEditorClient.OnJoined), (data) =>
             {
-                await InitFromShare(fileUrl, data);
-            });
-        });
-
-        // 有人加入了
-        _client.On<ClientConnectDto>(nameof(IEditorClient.OnUserJoined), async (user) =>
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                ShowStatusMessage(string.Format(GetLocalizedString("UserJoined"), user.UserName));
-            });
-        });
-
-        // 有人离开了
-        _client.On<ClientConnectDto, string>(nameof(IEditorClient.OnUserLeft), async (user, message) =>
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                ShowStatusMessage(string.Format(GetLocalizedString("UserLeft"), user.UserName, message));
-            });
-        });
-
-        // 收到远程用户的编辑操作
-        _client.On<string>(nameof(IEditorClient.OnTyping), async (patchText) =>
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                _isRemoteUpdate = true; //防止死循环
-
-                string currentUiText = GetRawFumenText();
-                var patches = _dmp.patch_fromText(patchText);
-                var result = _dmp.patch_apply(patches, currentUiText);
-                string newText = (string)result[0];
-
-                var cursor = GetRawFumenPosition();
-
-                foreach (var patch in patches)
+                Dispatcher.Invoke(async () =>
                 {
-                    var patchStart = patch.start1;
-                    var patchEnd = patchStart + patch.length1;
-                    var lengthDiff = patch.length2 - patch.length1;
-
-                    // 补丁块完全在光标之后
-                    //（由于EQUAL diff，几个字符内会误判到覆盖光标，但是这样至少能快点）
-                    if (patchStart > cursor)
-                    {
-                        continue;
-                    }
-
-                    // 补丁块完全在光标之前
-                    if (patchEnd <= cursor)
-                    {
-                        cursor += lengthDiff;
-                        continue; // 下一个补丁
-                    }
-
-                    // 补丁块覆盖了光标
-                    var currentPos = patchStart;
-                    foreach (var diff in patch.diffs)
-                    {
-                        int len = diff.text.Length;
-                        if (diff.operation == Operation.EQUAL)
-                        {
-                            currentPos += len;
-                        }
-                        else if (diff.operation == Operation.DELETE)
-                        {
-                            // 如果删除内容在光标后面就不用管（前文误判因素）
-                            if (currentPos > cursor) break;
-
-                            // 如果光标在被删除的区间内，回退到删除点起点
-                            if (currentPos + len > cursor) cursor = currentPos;
-                            else if (currentPos + len <= cursor) cursor -= len;
-                            currentPos += len;
-                        }
-                        else if (diff.operation == Operation.INSERT)
-                        {
-                            // 如果插入点在光标前，光标后移
-                            if (currentPos <= cursor) cursor += len;
-                        }
-                    }
-                }
-
-                SetRawFumenText(newText); // 这里的光标变化会被拦截不同步
-                _shadowText = newText;
-
-                FumenContent.Focus();
-
-                _isRemoteUpdate = false;
-
-                SetRawFumenPosition(cursor); // 这里的光标处理需要同步
+                    await InitFromShare(fileUrl, data);
+                });
             });
-        });
-        
-        //光标移动信息
-        _client.On<Dictionary<string, RemoteCursor>>(nameof(IEditorClient.OnSyncCursors), async (cursors) =>
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                _cursors = cursors.Where(c => c.Key != _client.ConnectionId).ToDictionary(kv => kv.Key, kv => kv.Value);
-                RenderAllCursors();
-            });
-        });
 
-        //接收到保存信息
-        _client.On<string>(nameof(IEditorClient.OnSaveFumen), async (text) =>
-        {
-            await Dispatcher.InvokeAsync(() =>
+            // 有人加入了
+            _client.On<ClientConnectDto>(nameof(IEditorClient.OnUserJoined), async (user) =>
             {
-                if (text == "") SetSavedState(true); //为空表示只是状态更新
-                else SaveFumen(true);
-            });
-        });
-
-        //客户端关闭
-        _client.Closed += async (exception) =>
-        {
-            await Dispatcher.Invoke(async () =>
-            {
-                if (exception != null)
+                await Dispatcher.InvokeAsync(() =>
                 {
-                    MessageBox.Show(string.Format(GetLocalizedString("ConnectionClosed"), exception.Message + exception.InnerException?.Message), GetLocalizedString("Error"));
-                }
-
-                _client = null;
-                await DisconnectToChartServer();
+                    ShowStatusMessage(string.Format(GetLocalizedString("UserJoined"), user.UserName));
+                });
             });
-        };
 
-        await _client.StartAsync();
-        await _client.SendAsync(nameof(ChartHub.GuestInit), new ClientConnectDto() { 
-            UserName = editorSetting!.ShareUserName,
-            ColorHex = editorSetting!.ShareColorHex,
-            isHost = isHost
-        });
-        if (!isHost) Menu_ToggleChartShare.IsEnabled = false; //非房主不能套娃开房
-        Menu_AutosaveRecover.IsEnabled = false;
+            // 有人离开了
+            _client.On<ClientConnectDto, string>(nameof(IEditorClient.OnUserLeft), async (user, message) =>
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    ShowStatusMessage(string.Format(GetLocalizedString("UserLeft"), user.UserName, message));
+                });
+            });
+
+            // 收到远程用户的编辑操作
+            _client.On<string>(nameof(IEditorClient.OnTyping), async (patchText) =>
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _isRemoteUpdate = true; //防止死循环
+
+                    string currentUiText = GetRawFumenText();
+                    var patches = _dmp.patch_fromText(patchText);
+                    var result = _dmp.patch_apply(patches, currentUiText);
+                    string newText = (string)result[0];
+
+                    var cursor = GetRawFumenPosition();
+
+                    foreach (var patch in patches)
+                    {
+                        var patchStart = patch.start1;
+                        var patchEnd = patchStart + patch.length1;
+                        var lengthDiff = patch.length2 - patch.length1;
+
+                        // 补丁块完全在光标之后
+                        //（由于EQUAL diff，几个字符内会误判到覆盖光标，但是这样至少能快点）
+                        if (patchStart > cursor)
+                        {
+                            continue;
+                        }
+
+                        // 补丁块完全在光标之前
+                        if (patchEnd <= cursor)
+                        {
+                            cursor += lengthDiff;
+                            continue; // 下一个补丁
+                        }
+
+                        // 补丁块覆盖了光标
+                        var currentPos = patchStart;
+                        foreach (var diff in patch.diffs)
+                        {
+                            int len = diff.text.Length;
+                            if (diff.operation == Operation.EQUAL)
+                            {
+                                currentPos += len;
+                            }
+                            else if (diff.operation == Operation.DELETE)
+                            {
+                                // 如果删除内容在光标后面就不用管（前文误判因素）
+                                if (currentPos > cursor) break;
+
+                                // 如果光标在被删除的区间内，回退到删除点起点
+                                if (currentPos + len > cursor) cursor = currentPos;
+                                else if (currentPos + len <= cursor) cursor -= len;
+                                currentPos += len;
+                            }
+                            else if (diff.operation == Operation.INSERT)
+                            {
+                                // 如果插入点在光标前，光标后移
+                                if (currentPos <= cursor) cursor += len;
+                            }
+                        }
+                    }
+
+                    SetRawFumenText(newText); // 这里的光标变化会被拦截不同步
+                    _shadowText = newText;
+
+                    FumenContent.Focus();
+
+                    _isRemoteUpdate = false;
+
+                    SetRawFumenPosition(cursor); // 这里的光标处理需要同步
+                });
+            });
+
+            //光标移动信息
+            _client.On<Dictionary<string, RemoteCursor>>(nameof(IEditorClient.OnSyncCursors), async (cursors) =>
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    _cursors = cursors.Where(c => c.Key != _client.ConnectionId).ToDictionary(kv => kv.Key, kv => kv.Value);
+                    RenderAllCursors();
+                });
+            });
+
+            //接收到保存信息
+            _client.On<string>(nameof(IEditorClient.OnSaveFumen), async (text) =>
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    if (text == "") SetSavedState(true); //为空表示只是状态更新
+                    else SaveFumen(true);
+                });
+            });
+
+            //客户端关闭
+            _client.Closed += async (exception) =>
+            {
+                await Dispatcher.Invoke(async () =>
+                {
+                    if (exception != null)
+                    {
+                        MessageBox.Show(string.Format(GetLocalizedString("ConnectionClosed"), exception.Message + exception.InnerException?.Message), GetLocalizedString("Error"));
+                    }
+
+                    _client = null;
+                    await DisconnectToChartServer();
+                });
+            };
+
+            updateprog(5);
+
+            await _client.StartAsync();
+            updateprog(10);
+
+            await _client.SendAsync(nameof(ChartHub.GuestInit), new ClientConnectDto()
+            {
+                UserName = editorSetting!.ShareUserName,
+                ColorHex = editorSetting!.ShareColorHex,
+                isHost = isHost
+            });
+            if (!isHost) Menu_ToggleChartShare.IsEnabled = false; //非房主不能套娃开房
+            Menu_AutosaveRecover.IsEnabled = false;
+            updateprog(20);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(string.Format(GetLocalizedString("ConnectFail"), exception.Message + exception.InnerException?.Message), GetLocalizedString("Error"));
+            _client = null;
+            updateprog(100);
+            return false;
+        }
     }
 
     private async Task DisconnectToChartServer()
