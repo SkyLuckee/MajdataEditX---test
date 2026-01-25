@@ -26,11 +26,13 @@ public static class ThemeConfig
             var json = File.ReadAllText(ConfigPath);
             var cfg = JsonSerializer.Deserialize<ColorConfig>(json);
 
+#pragma warning disable CS8602 // 解引用可能出现空引用。
             LabelForeground = ParseColorOrDefault(cfg.LabelForeground, Default.LabelForeground);
             ButtonForeground = ParseColorOrDefault(cfg.ButtonForeground, Default.ButtonForeground);
             HelperForeground = ParseColorOrDefault(cfg.HelperForeground, Default.HelperForeground);
             WindowBackground = ParseColorOrDefault(cfg.WindowBackground, Default.WindowBackground);
             ButtonsBackground = ParseColorOrDefault(cfg.ButtonsBackground, Default.ButtonsBackground);
+#pragma warning restore CS8602
         }
         catch
         {
@@ -42,11 +44,11 @@ public static class ThemeConfig
     // 用于反序列化
     public class ColorConfig
     {
-        public string LabelForeground { get; set; }
-        public string ButtonForeground { get; set; }
-        public string HelperForeground { get; set; }
-        public string WindowBackground { get; set; }
-        public string ButtonsBackground { get; set; }
+        public string? LabelForeground { get; set; }
+        public string? ButtonForeground { get; set; }
+        public string? HelperForeground { get; set; }
+        public string? WindowBackground { get; set; }
+        public string? ButtonsBackground { get; set; }
     }
 
     // 默认颜色

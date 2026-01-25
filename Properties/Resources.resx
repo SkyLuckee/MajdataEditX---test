@@ -122,7 +122,4 @@
     <value>..\Resources\bg_dummy.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral,
             PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="File" xml:space="preserve">
-    <value>shabi</value>
-  </data>
 </root>

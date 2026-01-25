@@ -1,6 +1,7 @@
 ﻿using DiscordRPC.Logging;
 using MajdataEdit.AutoSaveModule;
 using MajdataEdit.ChartShare;
+using MajdataEdit.MaiMuriDX;
 using MajdataEdit.SyntaxModule;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;

@@ -1299,18 +1299,14 @@ public partial class MainWindow : Window
         Task.Run(() => DrawWave());
     }
 
-    public static string GetLocalizedString(string key, string resourceFileName = "Langs", bool addSpaceAfter = false)
+    public static string GetLocalizedString(string key, string resourceFileName = "Langs")
     {
-
         // Build up the fully-qualified name of the key
 
         var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         var fullKey = assemblyName + ":" + resourceFileName + ":" + key;
         var locExtension = new LocExtension(fullKey);
         locExtension.ResolveLocalizedValue(out string? localizedString);
-
-        // Add a space to the end, if requested
-        if (addSpaceAfter) localizedString += " ";
 
         return localizedString ?? key;
     }

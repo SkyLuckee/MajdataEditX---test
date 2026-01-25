@@ -1,4 +1,4 @@
-﻿namespace MajdataEdit;
+﻿namespace MajdataEdit.MaiMuriDX;
 
 public class RunArg
 {

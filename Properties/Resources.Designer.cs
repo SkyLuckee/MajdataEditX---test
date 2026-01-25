@@ -69,14 +69,5 @@ namespace MajdataEdit.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
-        /// <summary>
-        ///   查找类似 shabi 的本地化字符串。
-        /// </summary>
-        internal static string File {
-            get {
-                return ResourceManager.GetString("File", resourceCulture);
-            }
-        }
     }
 }

@@ -62,12 +62,6 @@
         </ContentWithTargetPath>
     </ItemGroup>
     <ItemGroup>
-        <None Include="Properties\Settings.settings">
-            <Generator>SettingsSingleFileGenerator</Generator>
-            <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
       <Resource Include="Resources\bg_dummy.jpg" />
       <Resource Include="Resources\outline_find_replace_white_24dp.png" />
       <Resource Include="Resources\outline_search_white_24dp.png" />
