@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using MajSimai;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -139,8 +140,8 @@ public partial class MainWindow
                 {
                     if ((bool)FollowPlayCheck.IsChecked!)
                     {
-                        ghostCusorPositionTime = (float)nearestTime;
-                        SeekTextFromIndex(se.noteGroupIndex);
+                        CursorTime = (float)nearestTime;
+                        SeekTextFromTime();
                     }
                 });
             }
@@ -155,17 +156,17 @@ public partial class MainWindow
         // 获取All Perfect理论上播放的时间点 也就是最后一个被完成的note
         double latestNoteFinishTime = -1;
         double baseTime, noteTime;
-        foreach (var noteGroup in SimaiProcess.notelist)
+        foreach (var noteGroup in SimaiProcess.noteLists[selectedDifficulty])
         {
-            baseTime = noteGroup.time;
-            foreach (var note in noteGroup.getNotes())
+            baseTime = noteGroup.Timing;
+            foreach (var note in noteGroup.Notes)
             {
-                if (note.noteType == SimaiNoteType.Tap || note.noteType == SimaiNoteType.Touch)
+                if (note.Type == SimaiNoteType.Tap || note.Type == SimaiNoteType.Touch)
                     noteTime = baseTime;
-                else if (note.noteType == SimaiNoteType.Hold || note.noteType == SimaiNoteType.TouchHold)
-                    noteTime = baseTime + note.holdTime;
-                else if (note.noteType == SimaiNoteType.Slide)
-                    noteTime = note.slideStartTime + note.slideTime;
+                else if (note.Type == SimaiNoteType.Hold || note.Type == SimaiNoteType.TouchHold)
+                    noteTime = baseTime + note.HoldTime;
+                else if (note.Type == SimaiNoteType.Slide)
+                    noteTime = note.SlideStartTime + note.SlideTime;
                 else
                     noteTime = -1;
                 if (noteTime > latestNoteFinishTime) latestNoteFinishTime = noteTime;
@@ -178,15 +179,14 @@ public partial class MainWindow
     private void generateSoundEffectList(double startTime, bool isOpIncluded)
     {
         waitToBePlayed = new List<SoundEffectTiming>();
-        if (isOpIncluded && !ShareMode)
+        if (isOpIncluded && !IsShare)
         {
-            var cmds = SimaiProcess.other_commands!.Split('\n');
-            foreach (var cmdl in cmds)
-                if (cmdl.Length > 12 && cmdl.Substring(1, 11) == "clock_count")
+            foreach (var cmd in SimaiProcess.simaiFile.Commands)
+                if (cmd.Prefix == "clock_count")
                     try
                     {
-                        var clock_cnt = int.Parse(cmdl.Substring(13));
-                        var clock_int = 60.0d / SimaiProcess.notelist[0].currentBpm;
+                        var clock_cnt = int.Parse(cmd.Value);
+                        var clock_int = 60.0d / SimaiProcess.noteLists[selectedDifficulty][0].Bpm;
                         for (var i = 0; i < clock_cnt; i++)
                             waitToBePlayed.Add(new SoundEffectTiming(i * clock_int, _hasClock: true));
                     }
@@ -195,40 +195,40 @@ public partial class MainWindow
                     }
         }
 
-        for (var i = 0; i < SimaiProcess.notelist.Count; i++)
+        for (var i = 0; i < SimaiProcess.noteLists[selectedDifficulty].Count; i++)
         {
-            var noteGroup = SimaiProcess.notelist[i];
-            if (noteGroup.time < startTime) continue;
+            var noteGroup = SimaiProcess.noteLists[selectedDifficulty][i];
+            if (noteGroup.Timing < startTime) continue;
 
             SoundEffectTiming stobj;
 
             // 如果目前为止已经有一个SE了 那么就直接使用这个SE
-            var combIndex = waitToBePlayed.FindIndex(o => Math.Abs(o.time - noteGroup.time) < 0.001f);
+            var combIndex = waitToBePlayed.FindIndex(o => Math.Abs(o.time - noteGroup.Timing) < 0.001f);
             if (combIndex != -1)
                 stobj = waitToBePlayed[combIndex];
             else
-                stobj = new SoundEffectTiming(noteGroup.time);
+                stobj = new SoundEffectTiming(noteGroup.Timing);
 
             stobj.noteGroupIndex = i;
 
-            var notes = noteGroup.getNotes();
+            var notes = noteGroup.Notes;
             foreach (var note in notes)
-                switch (note.noteType)
+                switch (note.Type)
                 {
                     case SimaiNoteType.Tap:
                     {
                         stobj.hasAnswer = true;
-                        if (note.isBreak)
+                        if (note.IsBreak)
                         {
                             // 如果是Break 则有Break判定音和Break欢呼音（2600）
                             stobj.hasBreak = true;
                             stobj.hasJudgeBreak = true;
                         }
 
-                        if (note.isEx)
+                        if (note.IsEx)
                             // 如果是Ex 则有Ex判定音
                             stobj.hasJudgeEx = true;
-                        if (!note.isBreak && !note.isEx)
+                        if (!note.IsBreak && !note.IsEx)
                             // 如果二者皆没有 则是普通note 播放普通判定音
                             stobj.hasJudge = true;
                         break;
@@ -237,30 +237,30 @@ public partial class MainWindow
                     {
                         stobj.hasAnswer = true;
                         // 类似于Tap 判断Break和Ex的音效 二者皆无则为普通
-                        if (note.isBreak)
+                        if (note.IsBreak)
                         {
                             stobj.hasBreak = true;
                             stobj.hasJudgeBreak = true;
                         }
 
-                        if (note.isEx) stobj.hasJudgeEx = true;
-                        if (!note.isBreak && !note.isEx) stobj.hasJudge = true;
+                        if (note.IsEx) stobj.hasJudgeEx = true;
+                        if (!note.IsBreak && !note.IsEx) stobj.hasJudge = true;
 
                         // 计算Hold尾部的音效
-                        if (!(note.holdTime <= 0.00f))
+                        if (!(note.HoldTime <= 0.00f))
                         {
                             // 如果是短hold（六角tap），则忽略尾部音效。否则，才会计算尾部音效
-                            var targetTime = noteGroup.time + note.holdTime;
+                            var targetTime = noteGroup.Timing + note.HoldTime;
                             var nearIndex = waitToBePlayed.FindIndex(o => Math.Abs(o.time - targetTime) < 0.001f);
                             if (nearIndex != -1)
                             {
                                 waitToBePlayed[nearIndex].hasAnswer = true;
-                                if (!note.isBreak && !note.isEx) waitToBePlayed[nearIndex].hasJudge = true;
+                                if (!note.IsBreak && !note.IsEx) waitToBePlayed[nearIndex].hasJudge = true;
                             }
                             else
                             {
                                 // 只有最普通的Hold才有结尾的判定音 Break和Ex型则没有（Break没有为推定）
-                                var holdRelease = new SoundEffectTiming(targetTime, true, !note.isBreak && !note.isEx);
+                                var holdRelease = new SoundEffectTiming(targetTime, true, !note.IsBreak && !note.IsEx);
                                 waitToBePlayed.Add(holdRelease);
                             }
                         }
@@ -269,26 +269,26 @@ public partial class MainWindow
                     }
                     case SimaiNoteType.Slide:
                     {
-                        if (!note.isSlideNoHead)
+                        if (!note.IsSlideNoHead)
                         {
                             // 当Slide不是无头星星的时候 才有answer音和判定音
                             stobj.hasAnswer = true;
-                            if (note.isBreak)
+                            if (note.IsBreak)
                             {
                                 stobj.hasBreak = true;
                                 stobj.hasJudgeBreak = true;
                             }
 
-                            if (note.isEx) stobj.hasJudgeEx = true;
-                            if (!note.isBreak && !note.isEx) stobj.hasJudge = true;
+                            if (note.IsEx) stobj.hasJudgeEx = true;
+                            if (!note.IsBreak && !note.IsEx) stobj.hasJudge = true;
                         }
 
                         // Slide启动音效
-                        var targetTime = note.slideStartTime;
+                        var targetTime = note.SlideStartTime;
                         var nearIndex = waitToBePlayed.FindIndex(o => Math.Abs(o.time - targetTime) < 0.001f);
                         if (nearIndex != -1)
                         {
-                            if (note.isSlideBreak)
+                            if (note.IsSlideBreak)
                                 // 如果是break slide的话 使用break slide的启动音效
                                 waitToBePlayed[nearIndex].hasBreakSlideStart = true;
                             else
@@ -298,7 +298,7 @@ public partial class MainWindow
                         else
                         {
                             SoundEffectTiming slide;
-                            if (note.isSlideBreak)
+                            if (note.IsSlideBreak)
                                 slide = new SoundEffectTiming(targetTime, _hasBreakSlideStart: true);
                             else
                                 slide = new SoundEffectTiming(targetTime, _hasSlide: true);
@@ -306,9 +306,9 @@ public partial class MainWindow
                         }
 
                         // Slide尾巴 如果是Break Slide的话 就要添加一个Break音效
-                        if (note.isSlideBreak)
+                        if (note.IsSlideBreak)
                         {
-                            targetTime = note.slideStartTime + note.slideTime;
+                            targetTime = note.SlideStartTime + note.SlideTime;
                             nearIndex = waitToBePlayed.FindIndex(o => Math.Abs(o.time - targetTime) < 0.001f);
                             if (nearIndex != -1)
                             {
@@ -329,7 +329,7 @@ public partial class MainWindow
                     {
                         stobj.hasAnswer = true;
                         stobj.hasTouch = true;
-                        if (note.isHanabi) stobj.hasHanabi = true;
+                        if (note.IsHanabi) stobj.hasHanabi = true;
                         break;
                     }
                     case SimaiNoteType.TouchHold:
@@ -338,17 +338,17 @@ public partial class MainWindow
                         stobj.hasTouch = true;
                         stobj.hasTouchHold = true;
                         // 计算TouchHold结尾
-                        var targetTime = noteGroup.time + note.holdTime;
+                        var targetTime = noteGroup.Timing + note.HoldTime;
                         var nearIndex = waitToBePlayed.FindIndex(o => Math.Abs(o.time - targetTime) < 0.001f);
                         if (nearIndex != -1)
                         {
-                            if (note.isHanabi) waitToBePlayed[nearIndex].hasHanabi = true;
+                            if (note.IsHanabi) waitToBePlayed[nearIndex].hasHanabi = true;
                             waitToBePlayed[nearIndex].hasAnswer = true;
                             waitToBePlayed[nearIndex].hasTouchHoldEnd = true;
                         }
                         else
                         {
-                            var tHoldRelease = new SoundEffectTiming(targetTime, true, _hasHanabi: note.isHanabi,
+                            var tHoldRelease = new SoundEffectTiming(targetTime, true, _hasHanabi: note.IsHanabi,
                                 _hasTouchHoldEnd: true);
                             waitToBePlayed.Add(tHoldRelease);
                         }
@@ -380,47 +380,31 @@ public partial class MainWindow
     private void renderSoundEffect(double delaySeconds)
     {
         //TODO: 改为异步并增加提示窗口
-        var path = Environment.CurrentDirectory + "/SFX";
-        var tempPath = GetViewerWorkingDirectory();
-        string converterPath;
-
-        var pathEnv = new List<string>
-        {
-            tempPath
-        };
-        pathEnv.AddRange(Environment.GetEnvironmentVariable("PATH")!.Split(Path.PathSeparator));
-        converterPath = pathEnv.FirstOrDefault(scanPath =>
-        {
-            return File.Exists(scanPath + "/ffmpeg.exe");
-        })!;
-
-        var throwErrorOnMismatch = converterPath.Length == 0;
+        var sfxPath = Environment.CurrentDirectory + "/SFX";
+        var tempPath = Environment.CurrentDirectory + "/MajdataView_Data/StreamingAssets";
+        var converterPath = tempPath + "/ffmpeg.exe";
 
         //默认参数：16bit
-        string getBasePath(string rawPath) { return rawPath.Split('/').Last(); }
-
-        var useOgg = File.Exists(maidataDir + "/track.ogg");
-
-        var bgmBank = new SoundBank(maidataDir + "/track" + (useOgg ? ".ogg" : ".mp3"));
+        var bgmBank = new SoundBank(audioDir);
 
         var comparableBanks = new Dictionary<string, SoundBank>();
 
-        var answerBank = new SoundBank(path + "/answer.wav");
-        var judgeBank = new SoundBank(path + "/judge.wav");
-        var judgeBreakBank = new SoundBank(path + "/judge_break.wav");
-        var judgeExBank = new SoundBank(path + "/judge_ex.wav");
-        var breakBank = new SoundBank(path + "/break.wav");
-        var hanabiBank = new SoundBank(path + "/hanabi.wav");
-        var holdRiserBank = new SoundBank(path + "/touchHold_riser.wav");
-        var trackStartBank = new SoundBank(path + "/track_start.wav");
-        var slideBank = new SoundBank(path + "/slide.wav");
-        var touchBank = new SoundBank(path + "/touch.wav");
-        var apBank = new SoundBank(path + "/all_perfect.wav");
-        var fanfareBank = new SoundBank(path + "/fanfare.wav");
-        var clockBank = new SoundBank(path + "/clock.wav");
-        var breakSlideStartBank = new SoundBank(path + "/break_slide_start.wav");
-        var breakSlideBank = new SoundBank(path + "/break_slide.wav");
-        var judgeBreakSlideBank = new SoundBank(path + "/judge_break_slide.wav");
+        var answerBank = new SoundBank(sfxPath + "/answer.wav");
+        var judgeBank = new SoundBank(sfxPath + "/judge.wav");
+        var judgeBreakBank = new SoundBank(sfxPath + "/judge_break.wav");
+        var judgeExBank = new SoundBank(sfxPath + "/judge_ex.wav");
+        var breakBank = new SoundBank(sfxPath + "/break.wav");
+        var hanabiBank = new SoundBank(sfxPath + "/hanabi.wav");
+        var holdRiserBank = new SoundBank(sfxPath + "/touchHold_riser.wav");
+        var trackStartBank = new SoundBank(sfxPath + "/track_start.wav");
+        var slideBank = new SoundBank(sfxPath + "/slide.wav");
+        var touchBank = new SoundBank(sfxPath + "/touch.wav");
+        var apBank = new SoundBank(sfxPath + "/all_perfect.wav");
+        var fanfareBank = new SoundBank(sfxPath + "/fanfare.wav");
+        var clockBank = new SoundBank(sfxPath + "/clock.wav");
+        var breakSlideStartBank = new SoundBank(sfxPath + "/break_slide_start.wav");
+        var breakSlideBank = new SoundBank(sfxPath + "/break_slide.wav");
+        var judgeBreakSlideBank = new SoundBank(sfxPath + "/judge_break_slide.wav");
 
         comparableBanks["Answer"] = answerBank;
         comparableBanks["Judge"] = judgeBank;
@@ -439,6 +423,8 @@ public partial class MainWindow
         comparableBanks["Break Slide"] = breakSlideBank;
         comparableBanks["Judge Break Slide"] = judgeBreakSlideBank;
 
+
+        // 检验并转换采样率
         foreach (var compPair in comparableBanks)
         {
             // Skip non existent file.
@@ -448,16 +434,17 @@ public partial class MainWindow
             if (bgmBank.FrequencyCheck(compPair.Value))
                 continue;
 
-            if (throwErrorOnMismatch)
-                throw new Exception(
-                    string.Format("BGM and {0} do not have same sample rate. Convert the {0} from {1}Hz into {2}Hz!",
-                        compPair.Key, compPair.Value.Frequency, bgmBank.Frequency)
-                );
+            if (compPair.Value.Frequency != bgmBank.Frequency)
+            {
+                Console.WriteLine("Convert sample of {0} ({1}/{2})...",
+                    compPair.Key,
+                    compPair.Value.Info!.length,
+                    compPair.Value.Frequency);
 
-            Console.WriteLine("Convert sample of {0} ({1}/{2})...", compPair.Key, compPair.Value.Info!.length,
-                compPair.Value.Frequency);
-            compPair.Value.Reassign(converterPath, tempPath, "t_" + getBasePath(compPair.Value.FilePath),
-                bgmBank.Frequency);
+                compPair.Value.Reassign(converterPath, tempPath,
+                    "t_" + compPair.Value.FilePath.Split('/').Last(),
+                    bgmBank.Frequency);
+            }
         }
 
         var freq = bgmBank.Frequency;
@@ -466,8 +453,8 @@ public partial class MainWindow
         var sampleCount = (long)((songLength + 5f) * freq * 2);
         bgmBank.RawSize = sampleCount;
         Console.WriteLine(sampleCount);
-        bgmBank.InitializeRawSample();
 
+        bgmBank.InitializeRawSample();
         foreach (var compPair in comparableBanks)
         {
             // Skip non existent file.
@@ -480,6 +467,8 @@ public partial class MainWindow
             Console.WriteLine("Init sample for {0}...", compPair.Key);
             compPair.Value.InitializeRawSample();
         }
+
+        // 生成out.wav
 
         var trackOps = new List<SoundDataRange>();
         var typeSamples = new Dictionary<SoundDataType, short[]>();
@@ -511,17 +500,16 @@ public partial class MainWindow
                 _ => null,
             };
         }
-
         void sampleWrite(int time, SoundDataType type)
         {
             var sample = getSampleFromType(type);
             if (sample == null) return;
             if (sample.Raw == null) return;
             if (sample.Frequency <= 0) return;
+
             for (var t = 0; t < sample.RawSize && time + t < typeSamples[type].Length; t++)
                 typeSamples[type][time + t] = sample.Raw[t];
         }
-
         void sampleWipe(int timeFrom, int timeTo, SoundDataType type)
         {
             for (var t = timeFrom; t < timeTo && t < typeSamples[type].Length; t++)
@@ -536,9 +524,7 @@ public partial class MainWindow
             if (soundTiming.hasJudge) sampleWrite(startIndex, SoundDataType.Judge);
             if (soundTiming.hasJudgeBreak) sampleWrite(startIndex, SoundDataType.JudgeBreak);
             if (soundTiming.hasJudgeEx) sampleWrite(startIndex, SoundDataType.JudgeEX);
-            if (soundTiming.hasBreak)
-                // Reach for the Stars.ogg
-                sampleWrite(startIndex, SoundDataType.Break);
+            if (soundTiming.hasBreak) sampleWrite(startIndex, SoundDataType.Break);
             if (soundTiming.hasHanabi) sampleWrite(startIndex, SoundDataType.Hanabi);
             if (soundTiming.hasTouchHold)
             {
@@ -593,9 +579,6 @@ public partial class MainWindow
         var filedata = new List<byte>();
         var delayEmpty = new short[(int)(delaySeconds * freq * 2)];
         var filehead = CreateWaveFileHeader(bgmBank.Raw!.Length * 2 + delayEmpty.Length * 2, 2, freq, 16).ToList();
-
-        //if (trackStartRAW.Length > delayEmpty.Length)
-        //    throw new Exception("track_start音效过长,请勿大于5秒");
 
         for (var i = 0; i < delayEmpty.Length; i++)
         {
@@ -730,7 +713,7 @@ public partial class MainWindow
             if (extraTime4AllPerfect < 0)
             {
                 // 足够播完 直接停止
-                Dispatcher.Invoke(() => { ToggleStop(); });
+                Dispatcher.Invoke(() => { Stop(); });
             }
             else
             {
@@ -739,7 +722,7 @@ public partial class MainWindow
                 {
                     AutoReset = false
                 };
-                stopPlayingTimer.Elapsed += (sender, e) => { Dispatcher.Invoke(() => { ToggleStop(); }); };
+                stopPlayingTimer.Elapsed += (sender, e) => { Dispatcher.Invoke(() => { Stop(); }); };
                 stopPlayingTimer.Start();
             }
         }
@@ -822,10 +805,8 @@ public partial class MainWindow
             if (FFMpegDirectory.Length == 0)
                 return;
 
-            Func<string, string> NormalizePath = path =>
-            {
-                return string.Join(Path.DirectorySeparatorChar.ToString(), path.Split('/'));
-            };
+            static string NormalizePath(string path) => 
+                string.Join(Path.DirectorySeparatorChar.ToString(), path.Split('/'));
 
             Temp = true;
             var OriginalPath = FilePath;

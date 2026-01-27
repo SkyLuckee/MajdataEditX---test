@@ -70,7 +70,7 @@
               HorizontalAlignment="Center" Width="45" Grid.ColumnSpan="2" Grid.RowSpan="2" Grid.Row="0" Grid.Column="1" Margin="43,0,0,0" />
 
         <DockPanel Height="19" VerticalAlignment="Top" Grid.ColumnSpan="3" Grid.RowSpan="2" Background="{DynamicResource ButtonsBackground}">
-            <ProgressBar x:Name="Menu_ProcessStatus"
+            <ProgressBar x:Name="Menu_ProcessStatus" IsIndeterminate="True"
                  DockPanel.Dock="Right" Background="{DynamicResource ButtonsBackground}"
                  Width="100" Height="12" 
                  Margin="10,0" 
@@ -84,8 +84,6 @@
                     <MenuItem x:Name="Menu_New" Header="{lex:Loc New}" Click="Menu_New_Click" />
                     <MenuItem x:Name="Menu_Open" Header="{lex:Loc Open}" Click="Menu_Open_Click" />
                     <MenuItem x:Name="Menu_Save" Header="{lex:Loc Save}" Click="Menu_Save_Click" />
-                    <MenuItem x:Name="Menu_SaveAs" Header="{lex:Loc SaveAs}" Click="Menu_SaveAs_Click" IsEnabled="False"
-                          Visibility="Collapsed" />
                     <MenuItem x:Name="Menu_CloseChart" Header="{lex:Loc CloseChart}" Click="Menu_CloseChart_Click" />
                     <Separator />
                     <MenuItem x:Name="Menu_ToggleChartShare" Header="{lex:Loc StartChartShare}"
@@ -122,8 +120,6 @@
                 <MenuItem Header="{lex:Loc Tools}" Foreground="{DynamicResource ButtonForeground}"
                       Template="{DynamicResource DarkMenuItem}">
                     <MenuItem Header="{lex:Loc BPMtap}" Click="BPMtap_MenuItem_Click" />
-                    <MenuItem x:Name="MenuMuriCheck" Header="{lex:Loc MapMuriDetc}" Click="MuriCheck_Click_1"
-                          IsEnabled="False" />
                     <MenuItem x:Name="SyntaxCheckButton" Header="{lex:Loc SyntaxDisplay}" Click="SyntaxCheckButton_Click"
                           IsEnabled="False" />
                     <MenuItem x:Name="MaiMuriDX" Header="{lex:Loc LaunchMaiMuriDX}" Click="MaiMuriDXButton_Click"
@@ -210,6 +206,8 @@
                 ClipToBounds="True" 
                 Margin="102,29,10,90" 
                 Grid.ColumnSpan="2" Grid.Row="1" Grid.Column="1"/>
+        <Label x:Name="FatalErrorLabel" Height="23" Margin="102,29,10,90" VerticalAlignment="Bottom"
+               Grid.ColumnSpan="2" Grid.Row="1" Grid.Column="1" MouseDown="FatalErrorLabel_MouseDown" Foreground="#FFFD2E2E" />
         <Label x:Name="TimeLabel" Content="0:00" HorizontalAlignment="Left" Height="64" Margin="0,16,0,0"
                VerticalAlignment="Top" Width="105" Foreground="{DynamicResource ButtonForeground}" FontFamily="Bahnschrift Light" FontSize="50"
                VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2" />

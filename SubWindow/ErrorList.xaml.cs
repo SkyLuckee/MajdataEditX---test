@@ -7,11 +7,12 @@ namespace MajdataEdit
 {
     public enum ErrorType
     {
+        Other,
         Info,
         MuriDXS,
         MuriDXD,
         Syntax,
-        Other
+        Serialize
     }
     public class Position
     {
@@ -63,7 +64,7 @@ namespace MajdataEdit
             Error error = (ErrorListView.SelectedItem as Error)!;
             var owner = ((MainWindow)Owner);
             owner.FumenContent.ScrollToVerticalOffset((error.Position.y - 1) * 28);
-            owner.ScrollToFumenContentSelection(error.Position.x, error.Position.y - 1);
+            owner.SetRawFumenPosition(error.Position.x, error.Position.y - 1);
             owner.Activate();
         }
         protected override void OnClosing(CancelEventArgs e)

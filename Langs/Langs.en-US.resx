@@ -238,6 +238,9 @@
   <data name="ConnectionClosed" xml:space="preserve">
     <value>Connection closed! reason: {0}</value>
   </data>
+  <data name="ToggleShareFail" xml:space="preserve">
+    <value>Launch/Stop Chart Share failed! reason: {0}</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Close Viewer?</value>
   </data>
@@ -613,5 +616,8 @@ Click OK to start render.</value>
   </data>
   <data name="UserLeft" xml:space="preserve">
     <value>{0} Left Chart Share {1}</value>
+  </data>
+  <data name="FatalError" xml:space="preserve">
+    <value>Fatal Error Occured！{0} (L{1} C{2}) please solve it first!</value>
   </data>
 </root>

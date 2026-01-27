@@ -240,4 +240,7 @@
   <data name="ToggleShareFail" xml:space="preserve">
     <value />
   </data>
+  <data name="FatalError" xml:space="preserve">
+    <value />
+  </data>
 </root>

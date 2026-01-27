@@ -7,6 +7,7 @@ namespace MajdataEdit;
 
 internal static class WebControl
 {
+    // For View
     public static string RequestPOST(string url, string data = "")
     {
         try
@@ -29,6 +30,7 @@ internal static class WebControl
         }
     }
 
+    // For Update Check
     public static async Task<string> RequestGETAsync(string url)
     {
         try

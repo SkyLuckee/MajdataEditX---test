@@ -1,4 +1,6 @@
-﻿namespace MajdataEdit;
+﻿using MajSimai;
+
+namespace MajdataEdit;
 
 internal class Majson
 {
@@ -49,16 +51,6 @@ public enum EditorComboIndicator
     CScoreDedeluxe = 101,
     CScoreDownDedeluxe,
     MAX
-}
-
-internal enum EditorControlMethod
-{
-    Start,
-    Stop,
-    OpStart,
-    Pause,
-    Continue,
-    Record
 }
 
 //this setting is per maidata

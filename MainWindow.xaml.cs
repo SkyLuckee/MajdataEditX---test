@@ -3,20 +3,35 @@ using MajdataEdit.AutoSaveModule;
 using MajdataEdit.ChartShare;
 using MajdataEdit.MaiMuriDX;
 using MajdataEdit.SyntaxModule;
+using MajSimai;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;
 using Python.Runtime;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Media;
+using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using Un4seen.Bass;
+using Brush = System.Drawing.Brush;
+using Color = System.Drawing.Color;
+using DashStyle = System.Drawing.Drawing2D.DashStyle;
+using Font = System.Drawing.Font;
+using LinearGradientBrush = System.Drawing.Drawing2D.LinearGradientBrush;
+using Pen = System.Drawing.Pen;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using Point = System.Windows.Point;
 using Timer = System.Timers.Timer;
 
 namespace MajdataEdit;
@@ -26,7 +41,518 @@ namespace MajdataEdit;
 /// </summary>
 public partial class MainWindow : Window
 {
-    ErrorList errorListWindow;
+    public static MainWindow instance;
+
+    /// 设置窗口状态
+    /// 仅配置 程序逻辑无关的UI元素，如可用性、标题栏文字等
+    /// 类似 FumenContent, OffsetTextBox 之类的
+    /// UI元素 内容 与数据相关，不在此处设置
+    public void set_empty()
+    {
+        IsLoading = false;
+        IsShare = false;
+        IsHost = false;
+        // show cover animation
+        if (Cover.Visibility != Visibility.Visible)
+        {
+            ((Storyboard)Resources["CoverShow"]).Begin();
+        }
+
+        // ready for play
+        Op_Button.IsEnabled = true;
+        PlayAndPauseButton.Content = "▶";
+
+        // limit for menu
+        MenuEdit.IsEnabled = false;
+        VolumnSetting.IsEnabled = false;
+        Menu_ExportRender.IsEnabled = false;
+        SyntaxCheckButton.IsEnabled = false;
+        MaiMuriDX.IsEnabled = false;
+
+        // window title
+        TheWindow.Title = GetWindowsTitleString();
+
+        // focus
+        Cover.Focus();
+    }
+
+    public void set_loading(bool value)
+    {
+        IsLoading = value;
+        if (value)
+        {
+            Cover.Visibility = Visibility.Hidden;
+        }
+        else
+        {
+            // hide cover animation
+            if (Cover.Visibility == Visibility.Visible)
+                ((Storyboard)Resources["CoverHide"]).Begin();
+            else if (Cover.Visibility == Visibility.Hidden)
+                Cover.Visibility = Visibility.Collapsed;
+
+            // limit for menu
+            MenuEdit.IsEnabled = true;
+            VolumnSetting.IsEnabled = true;
+            Menu_ExportRender.IsEnabled = true;
+            SyntaxCheckButton.IsEnabled = true;
+            MaiMuriDX.IsEnabled = true;
+            MapInfo.IsEnabled = true;
+
+            // limit for editor
+            LevelSelector.IsEnabled = true;
+            LevelTextBox.IsEnabled = true;
+            OffsetTextBox.IsEnabled = true;
+
+            // window title
+            TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title);
+        }
+    }
+
+    public void set_share(bool value)
+    {
+        IsShare = value;
+        if (value)
+        {
+            // limit for menu
+            MapInfo.IsEnabled = false;
+            if (!IsHost) Menu_ToggleChartShare.IsEnabled = false; //非房主不能套娃开房
+            Menu_AutosaveRecover.IsEnabled = false;
+
+            // limit for editor
+            LevelSelector.IsEnabled = false;
+            LevelTextBox.IsEnabled = false;
+            OffsetTextBox.IsEnabled = false;
+
+            // window title
+            TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title + " Share");
+        }
+        else
+        {
+            // limit for menu
+            MapInfo.IsEnabled = true;
+            //if (!isHost)
+            Menu_ToggleChartShare.IsEnabled = true; //非房主不能套娃开房-恢复
+            Menu_AutosaveRecover.IsEnabled = true;
+
+            // limit for editor
+            LevelSelector.IsEnabled = true;
+            LevelTextBox.IsEnabled = true;
+            OffsetTextBox.IsEnabled = true;
+
+            // window title
+            TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title);
+        }
+    }
+    public void set_host(bool value)
+    {
+        IsHost = value;
+        if (value)
+        {
+            TheWindow.Height += 20;
+            Global_Grid.RowDefinitions[2].Height = new GridLength(20); //show status bar
+            ShareStatus.Text = string.Format(GetLocalizedString("ShareModeServer"), GetLocalIPAddress());
+            Menu_ToggleChartShare.Header = GetLocalizedString("StopChartShare");
+            Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare");
+            Menu_ConnectChartShare.IsEnabled = false; //房主不能自己断掉与自己的连接
+        }
+        else
+        {
+            TheWindow.Height -= 20;
+            Global_Grid.RowDefinitions[2].Height = new GridLength(0); //hide status bar
+            ShareStatus.DataContext = null;
+            Menu_ToggleChartShare.Header = GetLocalizedString("StartChartShare");
+            Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
+            Menu_ConnectChartShare.IsEnabled = true;
+        }
+    }
+
+    void set_err_count<T>(T eCount) => Dispatcher.Invoke(() => ErrCount.Content = $"{eCount}");
+
+
+    // wave draw
+    bool isDrawing;
+    private float deltatime = 4f;
+    private void draw_fft()
+    {
+        Dispatcher.InvokeAsync(() =>
+        {
+            //Scroll WaveView
+            var currentTime = Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream));
+            //MusicWave.Margin = new Thickness(-currentTime / sampleTime * zoominPower, Margin.Left, MusicWave.Margin.Right, Margin.Bottom);
+            //MusicWaveCusor.Margin = new Thickness(-currentTime / sampleTime * zoominPower, Margin.Left, MusicWave.Margin.Right, Margin.Bottom);
+
+            var writableBitmap = new WriteableBitmap(255, 255, 72, 72, PixelFormats.Pbgra32, null);
+            FFTImage.Source = writableBitmap;
+            writableBitmap.Lock();
+            var backBitmap = new Bitmap(255, 255, writableBitmap.BackBufferStride,
+                PixelFormat.Format32bppArgb, writableBitmap.BackBuffer);
+
+            var graphics = Graphics.FromImage(backBitmap);
+            graphics.Clear(Color.Transparent);
+
+            var fft = new float[1024];
+            Bass.BASS_ChannelGetData(bgmStream, fft, (int)BASSData.BASS_DATA_FFT1024);
+            var points = new PointF[1024];
+            for (var i = 0; i < fft.Length; i++)
+                points[i] = new PointF((float)Math.Log10(i + 1) * 100f, 240 - fft[i] * 256); //semilog
+
+            graphics.DrawCurve(new Pen(Color.LightSkyBlue, 1), points);
+
+
+            //no please
+            /*
+            var isSuccess = new Visuals().CreateSpectrumWave(bgmStream, graphics, new System.Drawing.Rectangle(0, 0, 255, 255),
+                System.Drawing.Color.White, System.Drawing.Color.Red,
+                System.Drawing.Color.Black, 1,
+                false, false, false);
+            Console.WriteLine(isSuccess);
+            */
+            graphics.Flush();
+            graphics.Dispose();
+            backBitmap.Dispose();
+
+            writableBitmap.AddDirtyRect(new Int32Rect(0, 0, 255, 255));
+            writableBitmap.Unlock();
+        });
+    }
+
+    private void init_wave()
+    {
+        var width = (int)Width - 2;
+        var height = (int)MusicWave.Height;
+        WaveBitmap = new WriteableBitmap(width, height, 72, 72, PixelFormats.Pbgra32, null);
+        MusicWave.Source = WaveBitmap;
+    }
+
+    private void draw_wave()
+    {
+        if (isDrawing) return;
+        if (WaveBitmap == null) return;
+
+        Dispatcher.Invoke(() =>
+        {
+            isDrawing = true;
+            var width = WaveBitmap.PixelWidth;
+            var height = WaveBitmap.PixelHeight;
+
+            if (waveRaws[0] == null)
+            {
+                isDrawing = false;
+                return;
+            }
+
+            WaveBitmap.Lock();
+
+            //the process starts
+            var backBitmap = new Bitmap(width, height, WaveBitmap.BackBufferStride,
+                PixelFormat.Format32bppArgb, WaveBitmap.BackBuffer);
+            var graphics = Graphics.FromImage(backBitmap);
+            var currentTime = Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream));
+
+            graphics.Clear(Color.FromArgb(100, 0, 0, 0));
+
+            var resample = (int)deltatime - 1;
+            if (resample > 1 && resample <= 3) resample = 1;
+            if (resample > 3) resample = 2;
+            var waveLevels = waveRaws[resample];
+
+            var step = songLength / waveLevels.Length;
+            var startindex = (int)((currentTime - deltatime) / step);
+            var stopindex = (int)((currentTime + deltatime) / step);
+            var linewidth = backBitmap.Width / (float)(stopindex - startindex);
+            var pen = new Pen(Color.Green, linewidth);
+            var points = new List<PointF>();
+            for (var i = startindex; i < stopindex; i = i + 1)
+            {
+                if (i < 0) i = 0;
+                if (i >= waveLevels.Length - 1) break;
+
+                var x = (i - startindex) * linewidth;
+                var y = waveLevels[i] / 65535f * height + height / 2;
+
+                points.Add(new PointF(x, y));
+            }
+
+            graphics.DrawLines(pen, points.ToArray());
+
+            //Draw Bpm lines
+            var lastbpm = -1f;
+            var bpmChangeTimes = new List<double>(); //在什么时间变成什么值
+            var bpmChangeValues = new List<float>();
+            bpmChangeTimes.Clear();
+            bpmChangeValues.Clear();
+            if (SimaiProcess.timingLists[selectedDifficulty] != null)
+                foreach (var timing in SimaiProcess.timingLists[selectedDifficulty])
+                    if (timing.Bpm != lastbpm)
+                    {
+                        bpmChangeTimes.Add(timing.Timing);
+                        bpmChangeValues.Add(timing.Bpm);
+                        lastbpm = timing.Bpm;
+                    }
+
+            bpmChangeTimes.Add(Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetLength(bgmStream)));
+
+            double time = SimaiProcess.simaiFile.Offset;
+            var signature = 4; //预留拍号
+            var currentBeat = 1;
+            var timePerBeat = 0d;
+            pen = new Pen(Color.Yellow, 1);
+            var strongBeat = new List<double>();
+            var weakBeat = new List<double>();
+            for (var i = 1; i < bpmChangeTimes.Count; i++)
+            {
+                while (time - bpmChangeTimes[i] < -0.05) //在那个时间之前都是之前的bpm
+                {
+                    if (currentBeat > signature) currentBeat = 1;
+                    timePerBeat = 1d / (bpmChangeValues[i - 1] / 60d);
+                    if (currentBeat == 1)
+                        strongBeat.Add(time);
+                    else
+                        weakBeat.Add(time);
+                    currentBeat++;
+                    time += timePerBeat;
+                }
+
+                time = bpmChangeTimes[i];
+                currentBeat = 1;
+            }
+
+            foreach (var btime in strongBeat)
+            {
+                if (btime - currentTime > deltatime) continue;
+                var x = ((float)(btime / step) - startindex) * linewidth;
+                graphics.DrawLine(pen, x, 0, x, 75);
+            }
+
+            foreach (var btime in weakBeat)
+            {
+                if (btime - currentTime > deltatime) continue;
+                var x = ((float)(btime / step) - startindex) * linewidth;
+                graphics.DrawLine(pen, x, 0, x, 15);
+            }
+
+            //Draw timing lines
+            pen = new Pen(Color.White, 1);
+            foreach (var note in SimaiProcess.timingLists[selectedDifficulty])
+            {
+                if (note == null) break;
+                if (note.Timing - currentTime > deltatime) continue;
+                var x = ((float)(note.Timing / step) - startindex) * linewidth;
+                graphics.DrawLine(pen, x, 60, x, 75);
+            }
+
+            //Draw notes                    
+            foreach (var note in SimaiProcess.noteLists[selectedDifficulty])
+            {
+                if (note == null) break;
+                if (note.Timing - currentTime > deltatime) continue;
+                var notes = note.Notes;
+                var isEach = notes.Count(o => !o.IsSlideNoHead) > 1;
+
+                var x = ((float)(note.Timing / step) - startindex) * linewidth;
+
+                foreach (var noteD in notes)
+                {
+                    var y = noteD.StartPosition * 6.875f + 8f; //与键位有关
+
+                    if (noteD.IsHanabi)
+                    {
+                        var xDeltaHanabi = (float)(1f / step) * linewidth; //Hanabi is 1s due to frame analyze
+                        var rectangleF = new RectangleF(x, 0, xDeltaHanabi, 75);
+                        if (noteD.Type == SimaiNoteType.TouchHold)
+                            rectangleF.X += (float)(noteD.HoldTime / step) * linewidth;
+                        var gradientBrush = new LinearGradientBrush(
+                            rectangleF,
+                            Color.FromArgb(100, 255, 0, 0),
+                            Color.FromArgb(0, 255, 0, 0),
+                            LinearGradientMode.Horizontal
+                        );
+                        graphics.FillRectangle(gradientBrush, rectangleF);
+                    }
+
+                    if (noteD.Type == SimaiNoteType.Tap)
+                    {
+                        if (noteD.IsForceStar)
+                        {
+                            pen.Width = 3;
+                            if (noteD.IsBreak)
+                                pen.Color = Color.OrangeRed;
+                            else if (isEach)
+                                pen.Color = Color.Gold;
+                            else
+                                pen.Color = Color.DeepSkyBlue;
+                            Brush brush = new SolidBrush(pen.Color);
+                            graphics.DrawString("*", new Font("Consolas", 12, System.Drawing.FontStyle.Bold), brush,
+                                new PointF(x - 7f, y - 7f));
+                        }
+                        else
+                        {
+                            pen.Width = 2;
+                            if (noteD.IsBreak)
+                                pen.Color = Color.OrangeRed;
+                            else if (isEach)
+                                pen.Color = Color.Gold;
+                            else
+                                pen.Color = Color.LightPink;
+                            graphics.DrawEllipse(pen, x - 2.5f, y - 2.5f, 5, 5);
+                        }
+                    }
+
+                    if (noteD.Type == SimaiNoteType.Touch)
+                    {
+                        pen.Width = 2;
+                        pen.Color = isEach ? Color.Gold : Color.DeepSkyBlue;
+                        graphics.DrawRectangle(pen, x - 2.5f, y - 2.5f, 5, 5);
+                    }
+
+                    if (noteD.Type == SimaiNoteType.Hold)
+                    {
+                        pen.Width = 3;
+                        if (noteD.IsBreak)
+                            pen.Color = Color.OrangeRed;
+                        else if (isEach)
+                            pen.Color = Color.Gold;
+                        else
+                            pen.Color = Color.LightPink;
+
+                        var xRight = x + (float)(noteD.HoldTime / step) * linewidth;
+
+                        //1h[0:1]
+                        if (!float.IsNormal(xRight)) xRight = ushort.MaxValue;
+                        if (xRight - x < 1f) xRight = x + 5;
+                        graphics.DrawLine(pen, x, y, xRight, y);
+
+                    }
+
+                    if (noteD.Type == SimaiNoteType.TouchHold)
+                    {
+                        pen.Width = 3;
+                        var xDelta = (float)(noteD.HoldTime / step) * linewidth / 4f;
+                        //Console.WriteLine("HoldPixel"+ xDelta);
+                        if (!float.IsNormal(xDelta)) xDelta = ushort.MaxValue;
+                        if (xDelta < 1f) xDelta = 1;
+
+                        pen.Color = Color.FromArgb(200, 255, 75, 0);
+                        graphics.DrawLine(pen, x, y, x + xDelta * 4f, y);
+                        pen.Color = Color.FromArgb(200, 255, 241, 0);
+                        graphics.DrawLine(pen, x, y, x + xDelta * 3f, y);
+                        pen.Color = Color.FromArgb(200, 2, 165, 89);
+                        graphics.DrawLine(pen, x, y, x + xDelta * 2f, y);
+                        pen.Color = Color.FromArgb(200, 0, 140, 254);
+                        graphics.DrawLine(pen, x, y, x + xDelta, y);
+                    }
+
+                    if (noteD.Type == SimaiNoteType.Slide)
+                    {
+                        pen.Width = 3;
+                        if (!noteD.IsSlideNoHead)
+                        {
+                            if (noteD.IsBreak)
+                                pen.Color = Color.OrangeRed;
+                            else if (isEach)
+                                pen.Color = Color.Gold;
+                            else
+                                pen.Color = Color.DeepSkyBlue;
+                            Brush brush = new SolidBrush(pen.Color);
+                            graphics.DrawString("*", new Font("Consolas", 12, System.Drawing.FontStyle.Bold), brush,
+                                new PointF(x - 7f, y - 7f));
+                        }
+
+                        if (noteD.IsSlideBreak)
+                            pen.Color = System.Drawing.Color.OrangeRed;
+                        else if (notes.Count(o => o.Type == SimaiNoteType.Slide) >= 2)
+                            pen.Color = Color.Gold;
+                        else
+                            pen.Color = Color.SkyBlue;
+                        pen.DashStyle = DashStyle.Dot;
+                        var xSlide = (float)(noteD.SlideStartTime / step - startindex) * linewidth;
+                        var xSlideRight = (float)(noteD.SlideTime / step) * linewidth + xSlide;
+
+                        if (!float.IsNormal(xSlideRight)) xSlideRight = ushort.MaxValue;
+                        if (!float.IsNormal(xSlide)) xSlide = ushort.MaxValue;
+
+                        graphics.DrawLine(pen, xSlide, y, xSlideRight, y);
+                        pen.DashStyle = DashStyle.Solid;
+                    }
+                }
+            }
+
+            if (playStartTime - currentTime <= deltatime)
+            {
+                //Draw play Start time
+                pen = new Pen(Color.Red, 5);
+                var x1 = (float)(playStartTime / step - startindex) * linewidth;
+                PointF[] tranglePoints = { new(x1 - 2, 0), new(x1 + 2, 0), new(x1, 3.46f) };
+                graphics.DrawPolygon(pen, tranglePoints);
+            }
+
+            if (CursorTime - currentTime <= deltatime)
+            {
+                //Draw ghost cusor
+                pen = new Pen(Color.Orange, 5);
+                var x2 = (float)(CursorTime / step - startindex) * linewidth;
+                PointF[] tranglePoints2 = { new(x2 - 2, 0), new(x2 + 2, 0), new(x2, 3.46f) };
+                graphics.DrawPolygon(pen, tranglePoints2);
+            }
+
+            graphics.Flush();
+            graphics.Dispose();
+            backBitmap.Dispose();
+
+            //MusicWave.Width = waveLevels.Length * zoominPower;
+            WaveBitmap.AddDirtyRect(new Int32Rect(0, 0, WaveBitmap.PixelWidth, WaveBitmap.PixelHeight));
+            WaveBitmap.Unlock();
+            isDrawing = false;
+        });
+    }
+
+
+    // editor UI
+
+    private void update_time_display(double time)
+    {
+        var minute = (int)time / 60;
+        double second = (int)(time - 60 * minute);
+        Dispatcher.Invoke(() => { TimeLabel.Content = string.Format("{0}:{1:00}", minute, second); });
+    }
+
+    public void toggle_find()
+    {
+        if (FindGrid.Visibility == Visibility.Collapsed)
+        {
+            FindGrid.Visibility = Visibility.Visible;
+            InputText.Text = FumenContent.SelectedText;
+            InputText.Focus();
+        }
+        else
+        {
+            FindGrid.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    public void report_fatal_error(Error? error)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            if (error == null)
+            {
+                fatalError = null;
+                FatalErrorLabel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                fatalError = error;
+                FatalErrorLabel.Content = string.Format(
+                    GetLocalizedString("FatalError"),
+                    error.Message,
+                    error.Position.y,
+                    error.Position.x);
+                FatalErrorLabel.Visibility = Visibility.Visible;
+            }
+        });
+    }
+
     public MainWindow()
     {
         InitializeComponent();
@@ -35,15 +561,7 @@ public partial class MainWindow : Window
             MessageBox.Show("正在以软件渲染模式运行\nソフトウェア・レンダリング・モードで動作\nBooting as software rendering mode.");
             RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
         }
-        errorListWindow = new();
-        progressIndicator = new Progress<int>(value =>
-        {
-            Menu_ProcessStatus.Value = value;
-            Debug.WriteLine(value);
-            if (value >= 100) Menu_ProcessStatus.Visibility = Visibility.Collapsed;
-            else Menu_ProcessStatus.Visibility = Visibility.Visible;
-        });
-        updateprog = progressIndicator.Report;
+        instance = this;
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -54,12 +572,12 @@ public partial class MainWindow : Window
 
         SetWindowGoldenPosition();
 
-        DCRPCclient.Logger = new ConsoleLogger { Level = LogLevel.Warning };
-        DCRPCclient.Initialize();
+        discordRpcClient.Logger = new ConsoleLogger { Level = LogLevel.Warning };
+        discordRpcClient.Initialize();
 
         var handle = new WindowInteropHelper(this).Handle;
         Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_CPSPEAKERS, handle);
-        InitWave();
+        init_wave();
 
         ReadSoundEffect();
         ReadEditorSetting();
@@ -117,11 +635,47 @@ public partial class MainWindow : Window
         setWindowPosTimer.Dispose();
     }
 
+    // This update very freqently to Draw FFT wave.
+    private void VisualEffectRefreshTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        try
+        {
+            draw_fft();
+            draw_wave();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+
+    // This update less frequently. set the time text.
+    private void CurrentTimeRefreshTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        update_time_display(Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream)));
+    }
+
+    // 谱面变更延迟解析
+    private void ChartChangeTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        Console.WriteLine("TextChanged");
+        //SyntaxCheck(); //不要进行定期检查（疑似快速修改谱面内容时莫名其妙卡死原因）
+        //太快=>异步=>在另外线程调用的原因。。被自己蠢笑啦
+        Dispatcher.Invoke(async () =>
+        {
+            SyntaxCheck();
+            await SimaiProcess.Serialize(GetRawFumenText());
+            draw_wave();
+            if (!ErrCount.Content.ToString()!.EndsWith("?"))
+                set_err_count(ErrCount.Content.ToString() + "?");
+        });
+    }
+
     //Window events
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
         if (!isSaved)
-            if (!AskSave())
+            if (!AskSaveFumen())
             {
                 e.Cancel = true;
                 return;
@@ -142,7 +696,7 @@ public partial class MainWindow : Window
         soundSetting.Close();
         //if (bpmtap != null) { bpmtap.Close(); }
         //if (muriCheck != null) { muriCheck.Close(); }
-        SaveSetting();
+        //SaveSetting();
 
         Bass.BASS_ChannelStop(bgmStream);
         Bass.BASS_StreamFree(bgmStream);
@@ -170,15 +724,12 @@ public partial class MainWindow : Window
     private async void Grid_Drop(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            //Console.WriteLine(e.Data.GetData(DataFormats.FileDrop).ToString());
             if (e.Data.GetData(DataFormats.FileDrop).ToString() == "System.String[]")
             {
                 var path = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
                 if (path.ToLower().Contains("maidata.txt"))
                 {
-                    if (!isSaved)
-                        if (!AskSave())
-                            return;
+                    if (!isSaved) if (!AskSaveFumen()) return;
                     var fileInfo = new FileInfo(path);
                     await InitFromFile(fileInfo.DirectoryName!);
                 }
@@ -195,9 +746,7 @@ public partial class MainWindow : Window
 
     private async void Menu_New_Click(object sender, RoutedEventArgs e)
     {
-        if (!isSaved)
-            if (!AskSave())
-                return;
+        if (!isSaved) if (!AskSaveFumen()) return;
         var openFileDialog = new OpenFileDialog
         {
             Filter = "track.mp3, track.ogg|track.mp3;track.ogg"
@@ -212,9 +761,7 @@ public partial class MainWindow : Window
 
     private async void Menu_Open_Click(object sender, RoutedEventArgs e)
     {
-        if (!isSaved)
-            if (!AskSave())
-                return;
+        if (!isSaved) if (!AskSaveFumen()) return;
         var openFileDialog = new OpenFileDialog
         {
             Filter = "maidata.txt|maidata.txt"
@@ -232,14 +779,11 @@ public partial class MainWindow : Window
         SystemSounds.Beep.Play();
     }
 
-    private void Menu_SaveAs_Click(object sender, RoutedEventArgs e)
-    {
-    }
-
     private void Menu_ExportRender_Click(object sender, RoutedEventArgs e)
     {
         TogglePlayAndPause(PlayMethod.Record);
     }
+
     private async void Menu_ToggleChartShare_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -253,33 +797,27 @@ public partial class MainWindow : Window
             return;
         }
     }
+
     private async void Menu_ConnectChartShare_Click(object sender, RoutedEventArgs e)
     {
-        if (ShareMode)
+        if (IsShare)
         {
             await DisconnectToChartServer();
-            Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
         }
         else
         {
-            var window = new ConnectShare(async (ip, port) =>
-            {
-                if (await ConnectToChartServer(ip, port))
-                    await Dispatcher.InvokeAsync(() =>
-                        Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare"));
-                else return;
-            })
+            new ConnectShare(async (ip, port) => { if (!await ConnectToChartServer(ip, port)) return; })
             {
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this
-            };
-            window.ShowDialog();
+            }.ShowDialog();
         }
     }
 
     private void Menu_CloseChart_Click(object sender, RoutedEventArgs e)
     {
-        ClearWindow();
+        if (!isSaved) if (!AskSaveFumen()) return;
+        ClearWindow(true);
     }
 
     private void MirrorLeftRight_MenuItem_Click(object? sender, RoutedEventArgs e)
@@ -309,9 +847,9 @@ public partial class MainWindow : Window
 
     private void BPMtap_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        var tap = new BPMtap();
-        tap.Owner = this;
-        tap.Show();
+        new BPMtap {
+            Owner = this
+        }.Show();
     }
 
     private void MenuItem_InfomationEdit_Click(object? sender, RoutedEventArgs e)
@@ -319,7 +857,7 @@ public partial class MainWindow : Window
         var infoWindow = new Infomation();
         SetSavedState(false);
         infoWindow.ShowDialog();
-        TheWindow.Title = GetWindowsTitleString(SimaiProcess.title!);
+        TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title);
     }
 
     private void MenuItem_Majnet_Click(object? sender, RoutedEventArgs e)
@@ -342,106 +880,41 @@ public partial class MainWindow : Window
         soundSetting.ShowDialog();
     }
 
-    private void MuriCheck_Click_1(object? sender, RoutedEventArgs e)
-    {
-        var muriCheck = new MuriCheck
-        {
-            Owner = this
-        };
-        muriCheck.Show();
-    }
     private void SyntaxCheckButton_Click(object sender, RoutedEventArgs e)
     {
-#if DEBUG
-        SyntaxChecker.ScanAsync(GetRawFumenText()).ContinueWith(t =>
-        {
-            SetErrCount(SyntaxChecker.GetErrorCount());
-            Dispatcher.Invoke(() => { ShowSyntaxError(); });
-        });
-#else
         try
         {
-            SyntaxChecker.ScanAsync(GetRawFumenText()).ContinueWith(t =>
-            {
-                SetErrCount(SyntaxChecker.GetErrorCount());
-                Dispatcher.Invoke(() => { ShowSyntaxError(); });
-            });
+            SyntaxChecker.Scan(GetRawFumenText());
+            set_err_count(SyntaxChecker.GetErrorCount());
+            Dispatcher.Invoke(() => { ShowSyntaxError(); });
         }
         catch
         {
-            SetErrCount(GetLocalizedString("InternalErr"));
+            set_err_count(GetLocalizedString("InternalErr"));
         }
-#endif
     }
+
     private void MaiMuriDXButton_Click(object sender, RoutedEventArgs e)
     {
         LaunchMaiMuriDX window = new(new RunArg(GetRawFumenText(), float.Parse(OffsetTextBox.Text), audioDir, false));
         window.Owner = this;
         window.Show();
     }
-    public void ShowMuriDXError(LaunchMaiMuriDX lmmdWindow)
-    {
-        SyntaxCheck();
-        for (int i = errorListWindow.ErrorListView.Items.Count - 1; i >= 0; i--)
-        {
-            if ((errorListWindow.ErrorListView.Items[i] as Error)!.Type is ErrorType.MuriDXS or ErrorType.MuriDXD)
-            {
-                errorListWindow.ErrorListView.Items.RemoveAt(i);
-            }
-        }
-        var errList = lmmdWindow.ErrorList;
-        errList.ForEach(e =>
-        {
-            errorListWindow.ErrorListView.Items.Add(e);
-        });
-        if (errorListWindow.IsVisible) errorListWindow.Activate();
-        else errorListWindow.Show();
-        if (errList.Count >= 100 && editorSetting!.Language == "zh-CN")
-        {
-            MessageBox.Show("我将删除你的Majdata。");
-        }
-    }
-    void ShowSyntaxError()
-    {
-        SyntaxCheck();
-        for (int i = errorListWindow.ErrorListView.Items.Count - 1; i >= 0; i--)
-        {
-            if ((errorListWindow.ErrorListView.Items[i] as Error)!.Type == ErrorType.Syntax)
-            {
-                errorListWindow.ErrorListView.Items.RemoveAt(i);
-            }
-        }
-        var errListCopy = SyntaxChecker.ErrorList.ToList();
-        errListCopy.ForEach(e =>
-        {
-            errorListWindow.ErrorListView.Items.Add(e);
-        });
-        if (errorListWindow.IsVisible) errorListWindow.Activate();
-        else errorListWindow.Show();
-    }
+
     private void SyntaxCheckButton_Click(object sender, MouseButtonEventArgs e)
     {
-#if DEBUG
-        SyntaxChecker.ScanAsync(GetRawFumenText()).ContinueWith(t =>
-        {
-            SetErrCount(SyntaxChecker.GetErrorCount());
-            Dispatcher.Invoke(() => { ShowSyntaxError(); });
-        });
-#else
         try
         {
-            SyntaxChecker.ScanAsync(GetRawFumenText()).ContinueWith(t =>
-            {
-                SetErrCount(SyntaxChecker.GetErrorCount());
-                Dispatcher.Invoke(() => { ShowSyntaxError(); });
-            });
+            SyntaxChecker.Scan(GetRawFumenText());
+            set_err_count(SyntaxChecker.GetErrorCount());
+            Dispatcher.Invoke(() => { ShowSyntaxError(); });
         }
         catch
         {
-            SetErrCount(GetLocalizedString("InternalErr"));
+            set_err_count(GetLocalizedString("InternalErr"));
         }
-#endif
     }
+
     private void MenuItem_EditorSetting_Click(object? sender, RoutedEventArgs e)
     {
         var esp = new EditorSettingPanel
@@ -459,7 +932,7 @@ public partial class MainWindow : Window
 
     private void MenuFind_Click(object? sender, RoutedEventArgs e)
     {
-        ToggleFindGrid();
+        toggle_find();
     }
 
     private async void CheckUpdate_Click(object? sender, RoutedEventArgs e)
@@ -480,12 +953,12 @@ public partial class MainWindow : Window
 
     #region 快捷键
 
-    private void PlayAndPause_CanExecute(object? sender, CanExecuteRoutedEventArgs e) //快捷键
+    private void PlayAndPause_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
         TogglePlayAndStop();
     }
 
-    private void StopPlaying_CanExecute(object? sender, CanExecuteRoutedEventArgs e) //快捷键
+    private void StopPlaying_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
         TogglePlayAndPause();
     }
@@ -513,7 +986,7 @@ public partial class MainWindow : Window
 
     private void FindCommand_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
     {
-        ToggleFindGrid();
+        toggle_find();
     }
 
     private void MirrorLRCommand_CanExecute(object? sender, CanExecuteRoutedEventArgs e)
@@ -552,19 +1025,23 @@ public partial class MainWindow : Window
 
     private void StopButton_Click(object sender, RoutedEventArgs e)
     {
-        ToggleStop();
+        Stop();
     }
 
     private async void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        set_loading(true);
+
         var i = LevelSelector.SelectedIndex;
-        LoadRawFumenText(SimaiProcess.fumens[i]);
+        SetRawFumenText(SimaiProcess.fumens[i]);
         selectedDifficulty = i;
         LevelTextBox.Text = SimaiProcess.levels[selectedDifficulty];
         SetSavedState(true);
         await SimaiProcess.Serialize(GetRawFumenText());
-        DrawWave();
+        draw_wave();
         SyntaxCheck();
+
+        set_loading(false);
     }
 
     private void LevelTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -577,15 +1054,17 @@ public partial class MainWindow : Window
     private async void OffsetTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         SetSavedState(false);
+        if (string.IsNullOrWhiteSpace(OffsetTextBox.Text))
+            OffsetTextBox.Text = "0";
         try
         {
-            SimaiProcess.first = float.Parse(OffsetTextBox.Text);
+            SimaiProcess.simaiFile.Offset = float.Parse(OffsetTextBox.Text);
             await SimaiProcess.Serialize(GetRawFumenText());
-            DrawWave();
+            draw_wave();
         }
         catch
         {
-            SimaiProcess.first = 0f;
+            SimaiProcess.simaiFile.Offset = 0f;
         }
     }
 
@@ -624,8 +1103,13 @@ public partial class MainWindow : Window
                                       .Count(o => o == '\n') + 1) + " 行";
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;
-        //TODO:这个应该换成用fumen text position来在已经serialized的timinglist里面找。。 然后直接去掉这个double的返回和position的入参。。。
-        var time = await SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
+
+        await SimaiProcess.Serialize(GetRawFumenText());
+        var time = SimaiProcess.timingLists[selectedDifficulty]?.Find(n =>
+        {
+            return n.RawTextPosition <= GetRawFumenPosition() &&
+                   n.RawTextPosition + n.RawContent.Length >= GetRawFumenPosition();
+        })?.Timing ?? 0d;
 
         //按住Ctrl，同时按下鼠标左键/上下左右方向键时，才改变进度，其他包含Ctrl的组合键不影响进度。
         if (Keyboard.Modifiers == ModifierKeys.Control && (
@@ -636,18 +1120,16 @@ public partial class MainWindow : Window
                 Keyboard.IsKeyDown(Key.Down)
             ))
         {
-            if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING)
-                TogglePause();
+            if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING) Pause();
             SetBgmPosition(time);
         }
 
         //Console.WriteLine("SelectionChanged: " + GetRawFumenPosition());
-        SimaiProcess.ClearNoteListPlayedState();
-        ghostCusorPositionTime = (float)time;
-        if (!isPlaying) DrawWave();
+        CursorTime = (float)time;
+        if (!isPlaying) draw_wave();
         findPosition = FumenContent.CaretIndex; //点击时刷新一下
 
-        if (ShareMode && !_isRemoteUpdate)
+        if (IsShare && !_isRemoteUpdate)
         {
             await _client!.InvokeAsync(nameof(ChartHub.Moving), GetRawFumenPosition());
         }
@@ -655,7 +1137,7 @@ public partial class MainWindow : Window
 
     private async void FumenContent_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (GetRawFumenText() == "" || isLoading) return;
+        if (GetRawFumenText() == "" || IsLoading) return;
         SetSavedState(false);
         await SyncChartServer(); //立马同步，用了diff的原因，没那么卡
 
@@ -670,6 +1152,22 @@ public partial class MainWindow : Window
         //私以为没必要 真的有人注意过铺面刷新延迟吗。
         chartChangeTimer.Stop();
         chartChangeTimer.Start();
+    }
+
+    private void Find_icon_MouseDown(object? sender, MouseButtonEventArgs e)
+    {
+        FindAndScroll();
+    }
+
+    private void Replace_icon_MouseDown(object? sender, MouseButtonEventArgs e)
+    {
+        if (!isReplaceConformed)
+        {
+            FindAndScroll();
+            return;
+        }
+
+        FindAndReplace();
     }
 
     private void FumenContent_OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -695,7 +1193,7 @@ public partial class MainWindow : Window
     {
         if (deltatime > 1)
             deltatime -= 1;
-        DrawWave();
+        draw_wave();
         FumenContent.Focus();
     }
 
@@ -703,12 +1201,20 @@ public partial class MainWindow : Window
     {
         if (deltatime < 10)
             deltatime += 1;
-        DrawWave();
+        draw_wave();
         FumenContent.Focus();
     }
 
     private void MusicWave_MouseWheel(object sender, MouseWheelEventArgs e)
     {
+        if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.LeftAlt))
+        {
+            var newDelta = deltatime + -e.Delta / 100;
+            if (newDelta > 1 && newDelta < 10)
+                deltatime = newDelta;
+            draw_wave();
+            return;
+        }
         ScrollWave(-e.Delta);
     }
 
@@ -731,11 +1237,14 @@ public partial class MainWindow : Window
 
     private void MusicWave_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        InitWave();
-        DrawWave();
+        init_wave();
+        draw_wave();
     }
 
-
-
     #endregion
+
+    private void FatalErrorLabel_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        SetRawFumenPosition(fatalError!.Position.x, fatalError.Position.y-1);
+    }
 }

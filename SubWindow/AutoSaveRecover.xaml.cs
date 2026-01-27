@@ -227,6 +227,7 @@ public partial class AutoSaveRecover : Window
 
     private async void Btn_Recover_Click(object sender, RoutedEventArgs e)
     {
+        if (!((MainWindow)Owner).isSaved) if (!((MainWindow)Owner).AskSaveFumen()) return;
         var currentItem = RecoverList[currentSelectedIndex];
 
         var result = MessageBox.Show(
@@ -239,7 +240,7 @@ public partial class AutoSaveRecover : Window
         if (result == MessageBoxResult.No) return;
 
         Recoverer.RecoverFile(currentItem.Item1);
-        await ((MainWindow)Owner).OpenFile(currentItem.Item1.RawPath!);
+        await ((MainWindow)Owner).InitFromFile(currentItem.Item1.RawPath!);
         Close();
     }
 

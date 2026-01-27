@@ -1,4 +1,6 @@
-﻿namespace MajdataEdit.SyntaxModule
+﻿using MajSimai;
+
+namespace MajdataEdit.SyntaxModule
 {
     enum DirectionType
     {
@@ -27,81 +29,81 @@
         /// 检查原始Simai文本
         /// </summary>
         /// <param name="noteStr"></param>
-        internal static async Task ScanAsync(string str)
+        internal static void Scan(string str)
         {
-            Action<string, int, int,string> addInfo = (s, x, y, localStr) =>
+            Action<string, int, int, string> addInfo = (s, x, y, localStr) =>
             {
                 ErrorList.Add(new Error(ErrorType.Syntax, new Position(x, y),
-                    string.Format(MainWindow.GetLocalizedString(localStr),s),null));
+                    string.Format(MainWindow.GetLocalizedString(localStr), s), null));
             };
-            Action<string, int, int> addError = (s, x, y) => addInfo(s,x,y, "SyntaxError");
+            Action<string, int, int> addError = (s, x, y) => addInfo(s, x, y, "SyntaxError");
 
-            await Task.Run(() =>
+            ErrorList.Clear();
+            int line = 1;
+            int column = 1;
+            var simaiChart = str.Split(",");
+
+            if (!string.IsNullOrEmpty(str))
             {
-                ErrorList.Clear();
-                int line = 1;
-                int column = 1;                
-                var simaiChart = str.Split(",");
+                if (simaiChart.Last().Replace("\n", "") == "E")//移除结尾E
+                    simaiChart = simaiChart.SkipLast(1).ToArray();
+                else
+                    addInfo("", -1, 114514, "SyntaxWarning");
+            }
 
-                if(!string.IsNullOrEmpty(str))
+            foreach (var s in simaiChart)
+            {
+                //这边的Col, Line太搞了（x
+                string simaiStr = s.Replace("\n", "");
+
+                if (string.IsNullOrEmpty(s))
                 {
-                    if (simaiChart.Last().Replace("\n", "") == "E")//移除结尾E
-                        simaiChart = simaiChart.SkipLast(1).ToArray();
-                    else
-                        addInfo("", -1, 114514, "SyntaxWarning");
+                    column++;
+                    continue;
+                }
+                if (s.Contains('\n'))
+                {
+                    line += s.Count(c => c == '\n');
+                    column = 0;
                 }
 
-                foreach (var s in simaiChart)
+                if (string.IsNullOrEmpty(simaiStr))
+                    continue;
+
+                //分割多押与伪多押
+                var notes = simaiStr.Split(new char[] { '/', '`' });
+                for (int i = 0; i < notes.Length; i++)
                 {
-                    //这边的Col, Line太搞了（x
-                    string simaiStr = s.Replace("\n", "");
+                    var noteStr = notes[i];
 
-                    if (string.IsNullOrEmpty(s))
-                        continue;
-                    if (s.Contains('\n'))
+                    if (string.IsNullOrEmpty(noteStr))
                     {
-                        line += s.Count(c => c == '\n');
-                        column = 0;
-                    }
-
-                    if (string.IsNullOrEmpty(simaiStr))
+                        addError(simaiStr, column, line);
                         continue;
-
-                    //分割多押与伪多押
-                    var notes = simaiStr.Split(new char[] { '/','`'});
-                    for (int i = 0;i < notes.Length;i++)
-                    {
-                        var noteStr = notes[i];
-
-                        if (string.IsNullOrEmpty(noteStr))
-                        {
-                            addError(simaiStr, column, line);
-                            continue;
-                        }
-                        if (i == 0 && !SpecialSyntaxCheck(ref noteStr, column, line))
-                            continue;
-                        else if (string.IsNullOrEmpty(noteStr))
-                            continue;
-                        NoteSyntaxCheck(noteStr, column, line);
                     }
-                    column += simaiStr.Length + 1; //include ,
+                    if (i == 0 && !SpecialSyntaxCheck(ref noteStr, column, line))
+                        continue;
+                    else if (string.IsNullOrEmpty(noteStr))
+                        continue;
+                    NoteSyntaxCheck(noteStr, column, line);
                 }
-            });
+                column += simaiStr.Length + 1; //include ,
+            }
         }
         /// <summary>
         /// 检查已解释的Note列表
         /// </summary>
         internal static void Scan()
         {
-            var noteList = SimaiProcess.notelist;
+            var noteList = SimaiProcess.noteLists[MainWindow.selectedDifficulty];
 
             foreach (var note in noteList)
             {
-                var raw = note.notesContent;
+                var raw = note.RawContent;
                 var notes = raw.Split("/");
 
                 foreach (var _note in notes)
-                    NoteSyntaxCheck(_note,note.rawTextPositionX,note.rawTextPositionY);
+                    NoteSyntaxCheck(_note,note.RawTextPositionX,note.RawTextPositionY);
             }
 
         }

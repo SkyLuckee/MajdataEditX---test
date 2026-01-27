@@ -3,7 +3,7 @@
 namespace MajdataEdit;
 
 //小额负责的部分哟
-internal static class Mirror
+public static class Mirror
 {
     public enum HandleType
     {

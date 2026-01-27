@@ -1,8 +1,10 @@
 ﻿using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using MajSimai;
 using Microsoft.Win32;
 
 namespace MajdataEdit;
@@ -19,19 +21,32 @@ public partial class Infomation : Window
 
     private void OKButton_Click(object sender, RoutedEventArgs e)
     {
-        SimaiProcess.title = TitleTextbox.Text;
-        SimaiProcess.artist = ArtistTextbox.Text;
-        SimaiProcess.designer = DesignTextbox.Text;
-        SimaiProcess.other_commands = OtherTextbox.Text;
+        SimaiProcess.simaiFile.Title = TitleTextbox.Text;
+        SimaiProcess.simaiFile.Artist = ArtistTextbox.Text;
+        foreach (var str in OtherTextbox.Text.Split('\n'))
+        {
+            if (SimaiCommand.TryParse(str, out var cmd))
+            {
+                SimaiProcess.simaiFile.Commands.Clear();
+                SimaiProcess.simaiFile.Commands.Add(cmd);
+            }
+        }
+
+        SimaiProcess.designers[MainWindow.selectedDifficulty] = DesignTextbox.Text;
         Close();
     }
 
     private void InfomationWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        TitleTextbox.Text = SimaiProcess.title;
-        ArtistTextbox.Text = SimaiProcess.artist;
-        DesignTextbox.Text = SimaiProcess.designer;
-        OtherTextbox.Text = SimaiProcess.other_commands;
+        TitleTextbox.Text = SimaiProcess.simaiFile.Title;
+        ArtistTextbox.Text = SimaiProcess.simaiFile.Artist;
+        DesignTextbox.Text = SimaiProcess.designers[MainWindow.selectedDifficulty];
+
+        StringBuilder sb = new();
+        foreach (var cmd in SimaiProcess.simaiFile.Commands)
+            sb.Append("&" + cmd.Prefix + "=" + cmd.Value + "\n");
+        OtherTextbox.Text = sb.ToString();
+
         LoadImageFromDefault();
         RenderOptions.SetBitmapScalingMode(SaltImage, BitmapScalingMode.HighQuality);
     }
