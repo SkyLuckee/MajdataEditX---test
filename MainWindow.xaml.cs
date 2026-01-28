@@ -11,10 +11,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Media;
-using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,7 +29,6 @@ using Font = System.Drawing.Font;
 using LinearGradientBrush = System.Drawing.Drawing2D.LinearGradientBrush;
 using Pen = System.Drawing.Pen;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
-using Point = System.Windows.Point;
 using Timer = System.Timers.Timer;
 
 namespace MajdataEdit;

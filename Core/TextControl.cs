@@ -1,9 +1,4 @@
 ﻿using MajSimai;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using Un4seen.Bass;
 
@@ -47,8 +42,20 @@ public partial class MainWindow : Window
         int finalIndex = currentIndex + positionX;
 
         FumenContent.CaretIndex = finalIndex;
+        ScrollToCaret();
     }
-    
+
+    public void ScrollToCaret()
+    {
+        Rect rect = FumenContent.GetRectFromCharacterIndex(FumenContent.CaretIndex, true);
+
+        if (rect != Rect.Empty)
+        {
+            // 水平没有必要
+            FumenContent.ScrollToVerticalOffset(rect.Top + FumenContent.VerticalOffset - 10);
+        }
+    }
+
     // 依据时间或note索引挪光标
     public void SeekTextFromTime()
     {

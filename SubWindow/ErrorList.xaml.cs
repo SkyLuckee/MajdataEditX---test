@@ -62,9 +62,11 @@ namespace MajdataEdit
         private void ErrorListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             Error error = (ErrorListView.SelectedItem as Error)!;
-            var owner = ((MainWindow)Owner);
+            if (error == null) return;
+            var owner = (MainWindow)Owner;
             owner.FumenContent.ScrollToVerticalOffset((error.Position.y - 1) * 28);
             owner.SetRawFumenPosition(error.Position.x, error.Position.y - 1);
+            owner.FumenContent.Focus();
             owner.Activate();
         }
         protected override void OnClosing(CancelEventArgs e)

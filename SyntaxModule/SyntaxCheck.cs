@@ -24,23 +24,23 @@ namespace MajdataEdit.SyntaxModule
         static readonly char[] SensorList = { 'A','B','C','D','E'};
         internal static List<Error> ErrorList = new();
 
+        static void AddError(string locKey, string s, int x, int y, string? detail = null) => //x-1 for the last ,
+            ErrorList.Add(new Error(ErrorType.Syntax, 
+                                    new Position(x - 1, y), 
+                                    string.Format(MainWindow.GetLocalizedString(locKey), s),
+                                    detail));
+
+
         public static int GetErrorCount() => ErrorList.Where(e => e.Type is ErrorType.Syntax).Count();
         /// <summary>
         /// 检查原始Simai文本
         /// </summary>
-        /// <param name="noteStr"></param>
+        /// <param name="noteStr">RawFumen</param>
         internal static void Scan(string str)
         {
-            Action<string, int, int, string> addInfo = (s, x, y, localStr) =>
-            {
-                ErrorList.Add(new Error(ErrorType.Syntax, new Position(x, y),
-                    string.Format(MainWindow.GetLocalizedString(localStr), s), null));
-            };
-            Action<string, int, int> addError = (s, x, y) => addInfo(s, x, y, "SyntaxError");
-
             ErrorList.Clear();
             int line = 1;
-            int column = 1;
+            int column = 0;
             var simaiChart = str.Split(",");
 
             if (!string.IsNullOrEmpty(str))
@@ -48,12 +48,13 @@ namespace MajdataEdit.SyntaxModule
                 if (simaiChart.Last().Replace("\n", "") == "E")//移除结尾E
                     simaiChart = simaiChart.SkipLast(1).ToArray();
                 else
-                    addInfo("", -1, 114514, "SyntaxWarning");
+                    AddError("SyntaxWarning", "", -1, 114514);
             }
 
             foreach (var s in simaiChart)
             {
-                //这边的Col, Line太搞了（x
+                //这边的Col, Line太搞了
+
                 string simaiStr = s.Replace("\n", "");
 
                 if (string.IsNullOrEmpty(s))
@@ -61,11 +62,16 @@ namespace MajdataEdit.SyntaxModule
                     column++;
                     continue;
                 }
+
                 if (s.Contains('\n'))
                 {
                     line += s.Count(c => c == '\n');
                     column = 0;
                 }
+
+                column += simaiStr.Length + 1; //include ,
+
+
 
                 if (string.IsNullOrEmpty(simaiStr))
                     continue;
@@ -78,7 +84,7 @@ namespace MajdataEdit.SyntaxModule
 
                     if (string.IsNullOrEmpty(noteStr))
                     {
-                        addError(simaiStr, column, line);
+                        AddError("SyntaxError", simaiStr, column, line);
                         continue;
                     }
                     if (i == 0 && !SpecialSyntaxCheck(ref noteStr, column, line))
@@ -87,7 +93,6 @@ namespace MajdataEdit.SyntaxModule
                         continue;
                     NoteSyntaxCheck(noteStr, column, line);
                 }
-                column += simaiStr.Length + 1; //include ,
             }
         }
         /// <summary>
@@ -110,7 +115,7 @@ namespace MajdataEdit.SyntaxModule
         /// <summary>
         /// 检查BPM与拍号的合法性
         /// </summary>
-        static bool SpecialSyntaxCheck(ref string simaiStr,int posX,int posY)
+        static bool SpecialSyntaxCheck(ref string simaiStr, int posX, int posY)
         {
             int bpmHeadCount = 0;
             int bpmTailCount = 0;
@@ -122,11 +127,8 @@ namespace MajdataEdit.SyntaxModule
 
             int[]? tagIndex = FindHSpeedBody(simaiStr);
 
-            Action<string> addError = s =>
-            {
-                ErrorList.Add(new Error(ErrorType.Syntax, new Position(posX, posY),
-                    string.Format(MainWindow.GetLocalizedString("SyntaxError"), s), MainWindow.GetLocalizedString("InvalidBPMBeatInvalidBPMBeat")));
-            };
+            void _addError(string s) =>
+                AddError("SyntaxError", s, posX, posY, MainWindow.GetLocalizedString("InvalidBPMBeat"));
 
             for (int i = 0; i < simaiStr.Length; i++)
             {
@@ -154,35 +156,35 @@ namespace MajdataEdit.SyntaxModule
 
             if(bpmHeadCount > 1 || bpmTailCount > 1)
             {
-                addError(simaiStr);
+                _addError(simaiStr);
                 return false;
             }
             else if (bpmHeadCount != bpmTailCount)
             {
-                addError(simaiStr);
+                _addError(simaiStr);
                 return false;
             }
 
             if (beatHeadCount > 1 || beatTailCount > 1)
             {
-                addError(simaiStr);
+                _addError(simaiStr);
                 return false;
             }
             else if (beatHeadCount != beatTailCount)
             {
-                addError(simaiStr);
+                _addError(simaiStr);
                 return false;
             }
 
             if (tagIndex is null)
             {
-                addError(simaiStr);
+                _addError(simaiStr);
                 return false;
             }
 
             //{}与()必须在Note前面
             if (bpmFirstIndex != 0 && beatFirstIndex != 0)
-                addError(simaiStr);
+                _addError(simaiStr);
             else
             {
                 int bpmEndIndex = simaiStr.IndexOf(')');
@@ -193,7 +195,7 @@ namespace MajdataEdit.SyntaxModule
 
                 if((hadBpm || hadBeat) && simaiStr[0] is not ('(' or '{'))
                 {
-                    addError(simaiStr);
+                    _addError(simaiStr);
                     return false;
                 }               
 
@@ -208,17 +210,17 @@ namespace MajdataEdit.SyntaxModule
 
                     if (s.Length != 2)//正常情况分割后的得到的Array长度应当是2
                     {
-                        addError(simaiStr);
+                        _addError(simaiStr);
                         return false;
                     }
                     else if (!string.IsNullOrEmpty(s[0]))//正常情况第一个元素应当是Empty
                     {
-                        addError(simaiStr);
+                        _addError(simaiStr);
                         return false;
                     }
                     else if (!IsNum(s[1]))//第二个元素应当是Number
                     {
-                        addError(simaiStr);
+                        _addError(simaiStr);
                         return false;
                     }
 
@@ -229,7 +231,7 @@ namespace MajdataEdit.SyntaxModule
                 //有头无尾
                 if((bpmFirstIndex != -1 && bpmEndIndex == -1) || (beatFirstIndex != -1 && beatEndIndex == -1)) //此处原本写成bpmFirstIndex和beatEndIndex的比较
                 {
-                    addError(simaiStr);
+                    _addError(simaiStr);
                     return false;
                 }
 
@@ -239,7 +241,7 @@ namespace MajdataEdit.SyntaxModule
                     //(){}
                     if (bpmEndIndex < beatFirstIndex && (beatFirstIndex != bpmEndIndex + 1))
                     {
-                        addError(simaiStr);
+                        _addError(simaiStr);
                         return false;
                     }
                     else if(bpmEndIndex < beatFirstIndex && (beatFirstIndex == bpmEndIndex + 1))
@@ -249,7 +251,7 @@ namespace MajdataEdit.SyntaxModule
                     //{}()
                     else if (beatEndIndex < bpmFirstIndex && (bpmFirstIndex != beatEndIndex + 1))
                     {
-                        addError(simaiStr);
+                        _addError(simaiStr);
                         return false;
                     }
 
@@ -257,12 +259,12 @@ namespace MajdataEdit.SyntaxModule
 
                 if (hadBeat && !IsInteger(simaiStr[(beatFirstIndex+1)..(beatEndIndex)]))
                 {
-                    addError(simaiStr);
+                    _addError(simaiStr);
                     return false;
                 }
                 if (hadBpm && !IsNum(simaiStr[(bpmFirstIndex + 1)..(bpmEndIndex)]))
                 {
-                    addError(simaiStr);
+                    _addError(simaiStr);
                     return false;
                 }
 
@@ -391,8 +393,7 @@ namespace MajdataEdit.SyntaxModule
                 return true;
             //else if(noteStr == "E")
             //    return true;
-            ErrorList.Add(new Error(ErrorType.Syntax, new Position(posX, posY),
-                    string.Format(MainWindow.GetLocalizedString("SyntaxError"),noteStr),null));
+            AddError("SyntaxError", noteStr, posX, posY);
             return false;
 
         }
@@ -565,7 +566,7 @@ namespace MajdataEdit.SyntaxModule
                     return false;
 
                 //参数检查
-                Func<int,bool> bodyChecker = i =>
+                bool bodyChecker(int i)
                 {
                     int bodyStartIndex = bodyIndex[i * 2];
                     int bodyEndIndex = bodyIndex[i * 2 + 1];
@@ -629,8 +630,8 @@ namespace MajdataEdit.SyntaxModule
                     {
                         return false;
                     }
-                };
-                if(bodyIndex.Length == 2)
+                }
+                if (bodyIndex.Length == 2)
                 {
                     if (!bodyChecker(0))
                         return false;
@@ -710,13 +711,11 @@ namespace MajdataEdit.SyntaxModule
 
             if (!PointCheck(point))
                 return null;
-            switch(point)
+            return point switch
             {
-                case 8:
-                    return 0;
-                default:
-                    return point * 45;
-            }
+                8 => 0,
+                _ => point * 45,
+            };
         }
         /// <summary>
         /// 获取键与键之间最短距离
@@ -802,9 +801,8 @@ namespace MajdataEdit.SyntaxModule
         /// <returns></returns>
         static bool IsTap(string s)
         {
-            int index;
 
-            if (!int.TryParse(s[0..1], out index))//总是检查第1位
+            if (!int.TryParse(s[0..1], out int index))//总是检查第1位
                 return false;
             if (!PointCheck(index))//错误键位直接返回
                 return false;

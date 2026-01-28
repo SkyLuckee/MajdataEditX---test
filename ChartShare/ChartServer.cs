@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 namespace MajdataEdit.ChartShare;
