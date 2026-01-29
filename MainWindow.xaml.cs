@@ -1102,11 +1102,14 @@ public partial class MainWindow : Window
             return;
 
         await SimaiProcess.Serialize(GetRawFumenText());
-        var time = SimaiProcess.timingLists[selectedDifficulty]?.Find(n =>
-        {
-            return n.RawTextPosition <= GetRawFumenPosition() &&
-                   n.RawTextPosition + n.RawContent.Length >= GetRawFumenPosition();
-        })?.Timing ?? 0d;
+
+        var timings = SimaiProcess.timingLists[selectedDifficulty];
+        var time = timings.FirstOrDefault(n =>
+            n.RawTextPosition <= GetRawFumenPosition() &&
+            n.RawTextPosition + n.RawContent.Length >= GetRawFumenPosition()
+        )?.Timing ?? 
+        (timings.Count > 0 ? SimaiProcess.timingLists[selectedDifficulty]?.Last().Timing : 0d) ??
+        0d;
 
         //按住Ctrl，同时按下鼠标左键/上下左右方向键时，才改变进度，其他包含Ctrl的组合键不影响进度。
         if (Keyboard.Modifiers == ModifierKeys.Control && (
