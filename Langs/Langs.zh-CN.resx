@@ -248,6 +248,9 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="ToggleShareFail" xml:space="preserve">
     <value>启动/停止谱面共享失败！原因：{0}</value>
   </data>
+  <data name="FatalError" xml:space="preserve">
+    <value>出现严重错误！{0} (L{1} C{2}) 请先解决该问题再继续编写！</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -409,17 +412,6 @@ CP区间±{5:0.0} ms，相关判定区如下:
   </data>
   <data name="SlideAccuracy" xml:space="preserve">
     <value>Slide撞尾检测精度:</value>
-  </data>
-  <data name="SlideError" xml:space="preserve">
-    <value>[撞尾无理] "{0}"({1}L,{2}C)可能会撞上"{3}"({4}L,{5}C) 二者间隔{6}ms</value>
-  </data>
-  <data name="SlideTooltip" xml:space="preserve">
-    <value>撞尾无理：当slide经过tap（A区）时，这个tap可能会被误触发
-检查撞尾无理的精度，单位是秒。
-建议您不要设置低于0.15的值，因为0.15秒是GOOD判定的区间，
-如果小于这个值，必定无理的撞尾就无法被检测出来。
-您可以设置略高于0.15的值，如0.2，此时容易蹭尾的配置也会被
-检测出来</value>
   </data>
   <data name="StartCheck" xml:space="preserve">
     <value>开始检测</value>
@@ -615,8 +607,5 @@ CP区间±{5:0.0} ms，相关判定区如下:
   </data>
   <data name="UserLeft" xml:space="preserve">
     <value>{0} 离开了谱面共享 {1}</value>
-  </data>
-  <data name="FatalError" xml:space="preserve">
-    <value>出现严重错误！{0} (L{1} C{2}) 请先解决该问题再继续编写！</value>
   </data>
 </root>

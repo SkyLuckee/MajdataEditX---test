@@ -133,22 +133,24 @@
     <value>Message</value>
   </data>
   <data name="MuriDXSErrorOverlap" xml:space="preserve">
-    <value />
+    <value>[Overlap] "{0}" overlaps with another note</value>
   </data>
   <data name="MuriDXSErrorOverlapDetail" xml:space="preserve">
-    <value />
+    <value>[Overlap] {0}combo "{1}"(L{2},C{3}) overlaps with {4}combo "{5}"(L{6},C{7})</value>
   </data>
   <data name="MuriDXSErrorSlideHeadTap" xml:space="preserve">
-    <value />
+    <value>[SlideHeadTap] “{0}” may be finished early by “{1}”</value>
   </data>
   <data name="MuriDXSErrorSlideHeadTapDetail" xml:space="preserve">
-    <value />
+    <value>[SlideHeadTap] {0}combo "{1}"(L{2},C{3}) may be finished early by {4}combo "{5}"(L{6},C{7})
+({8:+0;-0} ms)</value>
   </data>
   <data name="MuriDXSErrorTapOnSlide" xml:space="preserve">
-    <value />
+    <value>[TapOnSlide] “{0}” may be finished early by “{1}” </value>
   </data>
   <data name="MuriDXSErrorTapOnSlideDetail" xml:space="preserve">
-    <value />
+    <value>[TapOnSlide] {0}combo "{1}"(L{2},C{3}) may be finished early by {4}combo "{5}"(L{6},C{7})
+({8:+0;-0} ms)</value>
   </data>
   <data name="MuriDXDErrorMultiTouch" xml:space="preserve">
     <value>[MultiTouch] There may be {0} each notes</value>
@@ -158,28 +160,33 @@
     {2}</value>
   </data>
   <data name="MuriDXDErrorSlideTooFast" xml:space="preserve">
-    <value />
+    <value>[SlideTooFast] “{0}” is finished too fast</value>
   </data>
   <data name="MuriDXDErrorSlideTooFastDetail" xml:space="preserve">
-    <value />
+    <value>{0}[SlideTooFast] {1}combo "{2}"(L{3},C{4}) is finished too fast
+Critical Perfect: ±{5:0.0} ms，Sensors:
+{6}</value>
   </data>
   <data name="MuriDXDErrorOverlap" xml:space="preserve">
-    <value />
+    <value>[Overlap] "{0}" seems to overlap with another note</value>
   </data>
   <data name="MuriDXDErrorOverlapDetail" xml:space="preserve">
-    <value />
+    <value>{0}[Overlap] {1}combo "{2}" (L{3},C{4}) seems to overlap with another note
+({5:+0;-0} ms)</value>
   </data>
   <data name="MuriDXDErrorSlideHeadTap" xml:space="preserve">
-    <value />
+    <value>[SlideHeadTap] “{0}” is finished early by “{1}”</value>
   </data>
   <data name="MuriDXDErrorSlideHeadTapDetail" xml:space="preserve">
-    <value />
+    <value>{0}[SlideHeadTap] {1}combo "{2}"(L{3},C{4}) is finished early by {5}combo "{6}"(L{7},C{8})
+({9:+0;-0} ms)</value>
   </data>
   <data name="MuriDXDErrorTapOnSlide" xml:space="preserve">
-    <value />
+    <value>[TapOnSlide] “{0}” is finished early by “{1}” </value>
   </data>
   <data name="MuriDXDErrorTapOnSlideDetail" xml:space="preserve">
-    <value />
+    <value>{0}[TapOnSlide] {1}combo "{2}"(L{3},C{4}) may be finished early by {5}combo "{6}"(L{7},C{8}) 
+({9:+0;-0} ms)</value>
   </data>
   <data name="ShareEmpty" xml:space="preserve">
     <value>The chart to share is empty! Please open a chart first.</value>
@@ -240,6 +247,9 @@
   </data>
   <data name="ToggleShareFail" xml:space="preserve">
     <value>Launch/Stop Chart Share failed! reason: {0}</value>
+  </data>
+  <data name="FatalError" xml:space="preserve">
+    <value>Fatal Error Occured！{0} (L{1} C{2}) please solve it first!</value>
   </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Close Viewer?</value>
@@ -407,18 +417,6 @@ Recommended to keep this option enabled if you are not making UTAGE (gimmick) ma
   <data name="SlideAccuracy" xml:space="preserve">
     <value>Slide-Tap Detection Acc:</value>
     <comment>Maybe not the most accurate translation. Acc means accuracy. See more in "SlideTooltip"</comment>
-  </data>
-  <data name="SlideError" xml:space="preserve">
-    <value>[SlideTapError] "{0}"({1}L,{2}C) may obstructs "{3}"({4}L,{5}C). Interval:{6}ms</value>
-    <comment>Maybe not the most accurate translation</comment>
-  </data>
-  <data name="SlideTooltip" xml:space="preserve">
-    <value>The accuracy of detection on Slide-Tap Collision (in seconds)
-Slide-Tap Collision: when a SLIDE enters a TAP's "A Area", it can trigger the TAP too early.
-Recommended to stay above 0.2 for the best detection.
-Values lower than 0.15 will cause the detection to miss.
-    </value>
-    <comment>TL: I'm not sure what an "A Area is"...</comment>
   </data>
   <data name="StartCheck" xml:space="preserve">
     <value>Begin Error Checking</value>
@@ -616,8 +614,5 @@ Click OK to start render.</value>
   </data>
   <data name="UserLeft" xml:space="preserve">
     <value>{0} Left Chart Share {1}</value>
-  </data>
-  <data name="FatalError" xml:space="preserve">
-    <value>Fatal Error Occured！{0} (L{1} C{2}) please solve it first!</value>
   </data>
 </root>

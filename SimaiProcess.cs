@@ -65,7 +65,7 @@ internal static class SimaiProcess
     ///     Save the static data to maidata.txt
     /// </summary>
     /// <param name="filename">file path of maidata.txt</param>
-    public static void SaveData(string filename)
+    public static async void SaveData(string filename)
     {
         for (int i = 0; i < 7; i++)
         {
@@ -77,7 +77,8 @@ internal static class SimaiProcess
             simaiFile.Charts[i] = chart;
         }
         using var fileStream = File.OpenWrite(filename);
-        SimaiParser.DeparseAsync(simaiFile, fileStream);
+        fileStream.SetLength(0);
+        await SimaiParser.DeparseAsync(simaiFile, fileStream);
     }
 
     /// <summary>

@@ -133,61 +133,69 @@
     <value>メッセージ</value>
   </data>
   <data name="MuriDXSErrorOverlap" xml:space="preserve">
-    <value />
+    <value>[Overlap] "{0}" overlaps with another note</value>
   </data>
   <data name="MuriDXSErrorOverlapDetail" xml:space="preserve">
-    <value />
+    <value>[Overlap] {0}combo "{1}"(L{2},C{3}) overlaps with {4}combo "{5}"(L{6},C{7})</value>
   </data>
   <data name="MuriDXSErrorSlideHeadTap" xml:space="preserve">
-    <value />
+    <value>[SlideHeadTap] “{0}” may be finished early by “{1}”</value>
   </data>
   <data name="MuriDXSErrorSlideHeadTapDetail" xml:space="preserve">
-    <value />
+    <value>[SlideHeadTap] {0}combo "{1}"(L{2},C{3}) may be finished early by {4}combo "{5}"(L{6},C{7})
+({8:+0;-0} ms)</value>
   </data>
   <data name="MuriDXSErrorTapOnSlide" xml:space="preserve">
-    <value />
+    <value>[TapOnSlide] “{0}” may be finished early by “{1}” </value>
   </data>
   <data name="MuriDXSErrorTapOnSlideDetail" xml:space="preserve">
-    <value />
+    <value>[TapOnSlide] {0}combo "{1}"(L{2},C{3}) may be finished early by {4}combo "{5}"(L{6},C{7})
+({8:+0;-0} ms)</value>
   </data>
   <data name="MuriDXDErrorMultiTouch" xml:space="preserve">
-    <value />
+    <value>[MultiTouch] There may be {0} each notes</value>
   </data>
   <data name="MuriDXDErrorMultiTouchDetail" xml:space="preserve">
-    <value />
+    <value>{0}[MultiTouch] There may be {1} each notes.They are:
+    {2}</value>
   </data>
   <data name="MuriDXDErrorSlideTooFast" xml:space="preserve">
-    <value />
+    <value>[SlideTooFast] “{0}” is finished too fast</value>
   </data>
   <data name="MuriDXDErrorSlideTooFastDetail" xml:space="preserve">
-    <value />
+    <value>{0}[SlideTooFast] {1}combo "{2}"(L{3},C{4}) is finished too fast
+Critical Perfect: ±{5:0.0} ms，Sensors:
+{6}</value>
   </data>
   <data name="MuriDXDErrorOverlap" xml:space="preserve">
-    <value />
+    <value>[Overlap] "{0}" seems to overlap with another note</value>
   </data>
   <data name="MuriDXDErrorOverlapDetail" xml:space="preserve">
-    <value />
+    <value>{0}[Overlap] {1}combo "{2}" (L{3},C{4}) seems to overlap with another note
+({5:+0;-0} ms)</value>
   </data>
   <data name="MuriDXDErrorSlideHeadTap" xml:space="preserve">
-    <value />
+    <value>[SlideHeadTap] “{0}” is finished early by “{1}”</value>
   </data>
   <data name="MuriDXDErrorSlideHeadTapDetail" xml:space="preserve">
-    <value />
+    <value>{0}[SlideHeadTap] {1}combo "{2}"(L{3},C{4}) is finished early by {5}combo "{6}"(L{7},C{8})
+({9:+0;-0} ms)</value>
   </data>
   <data name="MuriDXDErrorTapOnSlide" xml:space="preserve">
-    <value />
+    <value>[TapOnSlide] “{0}” is finished early by “{1}” </value>
   </data>
   <data name="MuriDXDErrorTapOnSlideDetail" xml:space="preserve">
-    <value />
+    <value>{0}[TapOnSlide] {1}combo "{2}"(L{3},C{4}) may be finished early by {5}combo "{6}"(L{7},C{8}) 
+({9:+0;-0} ms)</value>
   </data>
   <data name="ShareEmpty" xml:space="preserve">
-    <value />
+    <value>The chart to share is empty! Please open a chart first.</value>
   </data>
   <data name="StartChartShare" xml:space="preserve">
-    <value />
+    <value>Start Share</value>
   </data>
   <data name="StopChartShare" xml:space="preserve">
-    <value />
+    <value>Stop Share</value>
   </data>
   <data name="DisconnectChartShare" xml:space="preserve">
     <value>Disconnect to Share</value>
@@ -199,19 +207,19 @@
     <value>Close Chart</value>
   </data>
   <data name="ShareModeServer" xml:space="preserve">
-    <value />
+    <value>Chart Share - Started on {0}:8014</value>
   </data>
   <data name="ViewSetting" xml:space="preserve">
-    <value />
+    <value>Viewの設定</value>
   </data>
   <data name="ShareSetting" xml:space="preserve">
-    <value />
+    <value>Chart Share Settings</value>
   </data>
   <data name="ShareUserName" xml:space="preserve">
-    <value />
+    <value>User Name</value>
   </data>
   <data name="ShareColorHex" xml:space="preserve">
-    <value />
+    <value>Cursor Color</value>
   </data>
   <data name="ConnectIP" xml:space="preserve">
     <value>IP Address</value>
@@ -226,7 +234,7 @@
     <value>Connect</value>
   </data>
   <data name="UserJoined" xml:space="preserve">
-    <value />
+    <value>{0} Joined Chart Share</value>
   </data>
   <data name="InvalidBPMBeat" xml:space="preserve">
     <value>Invalid BPM / Beat</value>
@@ -236,6 +244,12 @@
   </data>
   <data name="ConnectionClosed" xml:space="preserve">
     <value>Connection closed! reason: {0}</value>
+  </data>
+  <data name="ToggleShareFail" xml:space="preserve">
+    <value>Launch/Stop Chart Share failed! reason: {0}</value>
+  </data>
+  <data name="FatalError" xml:space="preserve">
+    <value>Fatal Error Occured！{0} (L{1} C{2}) please solve it first!</value>
   </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Viewを閉しますか？</value>
@@ -409,20 +423,6 @@ If your map allow this situation, e.g. UTAGE map, you can disable this option.</
   </data>
   <data name="SlideAccuracy" xml:space="preserve">
     <value>Slide-Tap Detection Acc:</value>
-    <comment>Translation required</comment>
-  </data>
-  <data name="SlideError" xml:space="preserve">
-    <value>[SlideTapError] "{0}"({1}L,{2}C) may obstructs "{3}"({4}L,{5}C). Interval:{6}ms</value>
-    <comment>Translation required. {0} and {3} is the simai-language text which has SlideTapError. {6} is the time gap between two note. {1}, {2}, {4} and {5} means Line and Column which may not needed to be translate.</comment>
-  </data>
-  <data name="SlideTooltip" xml:space="preserve">
-    <value>Slide-Tap Error: when a SLIDE pass a TAP in "A Area", it may 
-trigger this TAP unexpected.
-The accuracy of detection on Slide-Tap Error. Unit: second.
-Please DO NOT enter a value less than 0.15, or some of
-Impossible Notes will not be found out.
-If you wanna an excellent map, you can set the accuracy to
-0.2 or higher.</value>
     <comment>Translation required</comment>
   </data>
   <data name="StartCheck" xml:space="preserve">
@@ -639,5 +639,8 @@ Open Browser to download latest update of Majdata?</value>
   </data>
   <data name="SyntaxWarning" xml:space="preserve">
     <value>[Syntax警告] チャートは「E」で終わる必要があります : "{0}"</value>
+  </data>
+  <data name="UserLeft" xml:space="preserve">
+    <value>{0} Left Chart Share {1}</value>
   </data>
 </root>
