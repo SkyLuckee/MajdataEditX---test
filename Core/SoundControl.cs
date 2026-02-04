@@ -818,7 +818,7 @@ public partial class MainWindow
                 NormalizePath(FilePath),
                 NewFrequency
             );
-            var startInfo = new ProcessStartInfo(FFMpegDirectory + "/ffmpeg.exe", args)
+            var startInfo = new ProcessStartInfo(FFMpegDirectory, args)
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,

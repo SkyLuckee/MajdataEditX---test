@@ -32,7 +32,6 @@
 	</ItemGroup>
     <ItemGroup>
         <PackageReference Include="DiffMatchPatch" Version="1.0.3" />
-        <PackageReference Include="Lingfeng-bbben.MajSimai" Version="2.0.5" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
         <PackageReference Include="pythonnet" Version="3.0.5" />
@@ -61,6 +60,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <TargetPath>LICENSE_MajdataEdit</TargetPath>
         </ContentWithTargetPath>
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\MajSimaiX\MajSimai.csproj" />
     </ItemGroup>
     <ItemGroup>
       <Resource Include="Resources\bg_dummy.jpg" />
