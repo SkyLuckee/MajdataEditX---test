@@ -10,12 +10,14 @@ public partial class MainWindow : Window
 
     public void FindAndScroll()
     {
+        isFinding = true;
+
         string content = FumenContent.Text; //这里完全依赖UI元素，不管Raw是什么了
         string keyword = InputText.Text;
 
         // 为空
         if (string.IsNullOrEmpty(keyword)) return;
-        // 防止 lastFindPosition 越界（比如文本被删除变短了）
+        // 防止 findPosition 越界（比如文本被删除变短了）
         if (findPosition >= content.Length) findPosition = 0;
         // 下一个
         int position = content.IndexOf(keyword, findPosition);
@@ -24,17 +26,15 @@ public partial class MainWindow : Window
         //彻底没找到
         if (position == -1)
         {
-            isReplaceConformed = false;
             findPosition = 0;
             return;
         }
 
+        needChangeTime = true;
         FumenContent.Select(position, keyword.Length);
         lastFindPosition = position;
         findPosition = position + keyword.Length;
         FumenContent.Focus();
-
-        isReplaceConformed = true;
     }
 
     public void FindAndReplace()
@@ -46,7 +46,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            isReplaceConformed = false;
+            FindAndScroll();
         }
     }
 }

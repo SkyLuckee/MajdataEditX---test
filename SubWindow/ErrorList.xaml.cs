@@ -65,6 +65,7 @@ namespace MajdataEdit
             if (error == null) return;
             var owner = (MainWindow)Owner;
             owner.FumenContent.ScrollToVerticalOffset((error.Position.y - 1) * 28);
+            owner.needChangeTime = true;
             owner.SetRawFumenPosition(error.Position.x, error.Position.y - 1);
             owner.FumenContent.Focus();
             owner.Activate();

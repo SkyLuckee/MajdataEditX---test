@@ -46,6 +46,7 @@ public partial class MainWindow : Window
 
     private int findPosition;
     private int lastFindPosition;
+    private bool isFinding = false;
 
     // Playing
     private float CursorTime;
@@ -54,6 +55,7 @@ public partial class MainWindow : Window
     // Wave
     private double lastMousePointX; //Used for drag scroll
     private double songLength;
+    public bool needChangeTime = false;
 
     // Audio
     private SoundSetting soundSetting = new();

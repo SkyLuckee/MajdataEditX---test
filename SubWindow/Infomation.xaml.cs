@@ -23,11 +23,12 @@ public partial class Infomation : Window
     {
         SimaiProcess.simaiFile.Title = TitleTextbox.Text;
         SimaiProcess.simaiFile.Artist = ArtistTextbox.Text;
+        SimaiProcess.simaiFile.Commands.Clear();
         foreach (var str in OtherTextbox.Text.Split('\n'))
         {
             if (SimaiCommand.TryParse(str, out var cmd))
             {
-                SimaiProcess.simaiFile.Commands.Clear();
+                //SimaiProcess.simaiFile.Commands.Clear(); //这肯定不是我干的qwqqqqq
                 SimaiProcess.simaiFile.Commands.Add(cmd);
             }
         }

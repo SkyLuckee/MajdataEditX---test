@@ -1104,30 +1104,39 @@ public partial class MainWindow : Window
         await SimaiProcess.Serialize(GetRawFumenText());
 
         var timings = SimaiProcess.timingLists[selectedDifficulty];
-        var time = timings.FirstOrDefault(n =>
-            n.RawTextPosition <= GetRawFumenPosition() &&
-            n.RawTextPosition + n.RawContent.Length >= GetRawFumenPosition()
-        )?.Timing ?? 
-        (timings.Count > 0 ? SimaiProcess.timingLists[selectedDifficulty]?.Last().Timing : 0d) ??
-        0d;
+        double time = 0d;
+        foreach (var timing in timings)
+        {
+            if (timing.RawTextPosition >= GetRawFumenPosition())
+            {
+                time = timing.Timing;
+                break;
+            }
+        }
 
         //按住Ctrl，同时按下鼠标左键/上下左右方向键时，才改变进度，其他包含Ctrl的组合键不影响进度。
-        if (Keyboard.Modifiers == ModifierKeys.Control && (
+        //从错误页导航时/查找替换时(needChangeTime)也改变进度
+        if ((Keyboard.Modifiers == ModifierKeys.Control && (
                 Mouse.LeftButton == MouseButtonState.Pressed ||
                 Keyboard.IsKeyDown(Key.Left) ||
                 Keyboard.IsKeyDown(Key.Right) ||
                 Keyboard.IsKeyDown(Key.Up) ||
                 Keyboard.IsKeyDown(Key.Down)
-            ))
+            )) || needChangeTime)
         {
             if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING) Pause();
             SetBgmPosition(time);
+            needChangeTime = false;
         }
 
         //Console.WriteLine("SelectionChanged: " + GetRawFumenPosition());
         CursorTime = (float)time;
         if (!isPlaying) draw_wave();
-        findPosition = FumenContent.CaretIndex; //点击时刷新一下
+        if (!isFinding)
+        {
+            findPosition = FumenContent.CaretIndex; //主动点击时刷新一下
+            isFinding = false;
+        }
 
         if (IsShare && !_isRemoteUpdate)
         {
