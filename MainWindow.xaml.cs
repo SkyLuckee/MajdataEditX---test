@@ -1170,12 +1170,6 @@ public partial class MainWindow : Window
 
     private void Replace_icon_MouseDown(object? sender, MouseButtonEventArgs e)
     {
-        if (!isReplaceConformed)
-        {
-            FindAndScroll();
-            return;
-        }
-
         FindAndReplace();
     }
 

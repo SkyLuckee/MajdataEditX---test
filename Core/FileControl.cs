@@ -49,6 +49,8 @@ public partial class MainWindow : Window
     {
         set_loading(true);
 
+        FumenContent.IsUndoEnabled = false;
+
         // close all
         ClearWindow();
 
@@ -121,12 +123,16 @@ public partial class MainWindow : Window
         SetSavedState(true);
         SyntaxCheck();
 
+        FumenContent.IsUndoEnabled = true;
+
         set_loading(false);
     }
 
     public async Task InitFromShare(string fileUrl, GuestInitDto data)
     {
         set_loading(true);
+
+        FumenContent.IsUndoEnabled = false;
 
         // close all
         ClearWindow();
@@ -216,6 +222,8 @@ public partial class MainWindow : Window
         isSaved = true;
         SyntaxCheck();
         _shadowText = FumenContent.Text; // 影子文本和UI直接挂钩，没必要用不带\r的
+
+        FumenContent.IsUndoEnabled = true; //清一下撤销栈
 
         set_loading(false);
     }

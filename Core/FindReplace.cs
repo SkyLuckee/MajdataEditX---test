@@ -40,13 +40,8 @@ public partial class MainWindow : Window
     public void FindAndReplace()
     {
         if (FumenContent.SelectionStart == lastFindPosition)
-        {
             FumenContent.SelectedText = ReplaceText.Text;
-            FindAndScroll();
-        }
-        else
-        {
-            FindAndScroll();
-        }
+
+        FindAndScroll();
     }
 }

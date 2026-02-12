@@ -1,0 +1,41 @@
+已经修复的issue：
+https://github.com/re-poem/MajdataViewX/commit/c25216db5d457046d3599c5b9d63ef21bd52a062 - https://github.com/LingFeng-bbben/MajdataView/issues/175
+https://github.com/re-poem/MajdataEditX/commit/e6270bf1a7ecb1e8abbce48608eb9bfd2f8b41c0 - https://github.com/LingFeng-bbben/MajdataView/issues/172
+https://github.com/re-poem/MajdataViewX/commit/81928c231bb99a3f1ae4a9f92ad85cccbf3f7e2b - https://github.com/LingFeng-bbben/MajdataView/issues/161 (谱面读取界面的黑框遮挡有点问题，上面遮挡不全。)
+https://github.com/re-poem/MajdataEditX/commit/bbb2579f38444c15fc23383132fbf9b53f935b22 - https://github.com/LingFeng-bbben/MajdataView/issues/120（MajSimai）
+
+需要修复：
+https://github.com/LingFeng-bbben/MajdataView/issues/171
+https://github.com/LingFeng-bbben/MajdataView/issues/163
+enhancement:
+https://github.com/LingFeng-bbben/MajdataView/issues/152
+https://github.com/LingFeng-bbben/MajdataView/issues/148
+不打算修复：
+https://github.com/LingFeng-bbben/MajdataView/issues/151
+https://github.com/LingFeng-bbben/MajdataView/issues/129
+https://github.com/LingFeng-bbben/MajdataView/issues/30
+
+大概率已修复的issue：
+（未尝试复现/没能力复现）
+https://github.com/re-poem/MajdataViewX/commit/81928c231bb99a3f1ae4a9f92ad85cccbf3f7e2b - https://github.com/LingFeng-bbben/MajdataView/issues/170
+https://github.com/LingFeng-bbben/MajdataView/issues/143
+https://github.com/LingFeng-bbben/MajdataView/issues/118
+（无法复现）
+https://github.com/LingFeng-bbben/MajdataView/issues/169
+https://github.com/LingFeng-bbben/MajdataView/issues/168
+https://github.com/LingFeng-bbben/MajdataView/issues/167
+https://github.com/LingFeng-bbben/MajdataView/issues/166
+https://github.com/LingFeng-bbben/MajdataView/issues/164
+invalid:
+https://github.com/LingFeng-bbben/MajdataView/issues/137
+https://github.com/LingFeng-bbben/MajdataView/issues/135
+（大概率由一些提交顺带解决，并无法复现）
+https://github.com/LingFeng-bbben/MajdataView/issues/165
+https://github.com/LingFeng-bbben/MajdataView/issues/150
+https://github.com/LingFeng-bbben/MajdataView/issues/138（表现为总note能够加上{0}后的note个数，完成note只能加1）
+https://github.com/LingFeng-bbben/MajdataView/issues/115（Majsimai）
+https://github.com/LingFeng-bbben/MajdataView/issues/103（Majsimai）
+
+linux支持：
+https://github.com/LingFeng-bbben/MajdataView/issues/146
+
