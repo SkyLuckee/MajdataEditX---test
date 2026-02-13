@@ -10,9 +10,9 @@
 - https://github.com/re-poem/MajdataViewX/commit/81928c231bb99a3f1ae4a9f92ad85cccbf3f7e2b - https://github.com/LingFeng-bbben/MajdataView/issues/170 ("path/to//skin")
 ## enhancement
 - https://github.com/re-poem/MajdataEditX/commit/deacaa4d75f72fa440c378c391fa34e0fd3f4391 - https://github.com/LingFeng-bbben/MajdataView/issues/152 (subdivide phrases)
-- https://github.com/LingFeng-bbben/MajdataView/issues/148 (support for other time signatures)
+- https://github.com/re-poem/MajdataEditX/commit/674f62508112c065f24a9adb4b4fcfb1e32cef44 - https://github.com/LingFeng-bbben/MajdataView/issues/148 (support for other time signatures)
 
-# as not planned
+# not planned
 - https://github.com/LingFeng-bbben/MajdataView/issues/151 (HEVC pv support)
 - https://github.com/LingFeng-bbben/MajdataView/issues/129 (detect if the fumen has been modified)
 - https://github.com/LingFeng-bbben/MajdataView/issues/30  (special file extension like .majproj)

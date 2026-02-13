@@ -32,8 +32,8 @@ public partial class MainWindow : Window
 
         // clear data
         soundSetting?.Close();
-        audioDir = "";
-        maidataDir = "";
+        //audioDir = "";
+        //maidataDir = ""; //防止File->Share出错，这两步其实也没必要，每次打开必刷新
         FumenContent.Clear();
         SimaiProcess.Clear();
         LevelSelector.SelectedItem = "";
