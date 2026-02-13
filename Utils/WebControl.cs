@@ -3,9 +3,9 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 
-namespace MajdataEdit;
+namespace MajdataEdit.Utils;
 
-internal static class WebControl
+public static class WebControl
 {
     // For View
     public static string RequestPOST(string url, string data = "")

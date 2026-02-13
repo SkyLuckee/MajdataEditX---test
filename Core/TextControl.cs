@@ -1,4 +1,5 @@
-﻿using MajSimai;
+﻿using MajdataEdit.Utils;
+using MajSimai;
 using System.Windows;
 using Un4seen.Bass;
 
@@ -72,6 +73,12 @@ public partial class MainWindow : Window
     public void ApplyMirror(Mirror.HandleType handleType)
     {
         var result = Mirror.NoteMirrorHandle(FumenContent.SelectedText, handleType);
+        FumenContent.SelectedText = result;
+    }
+
+    public void ApplySubDevide(float multiplier)
+    {
+        var result = SubDivide.Subdivide(FumenContent.SelectedText, multiplier);
         FumenContent.SelectedText = result;
     }
 

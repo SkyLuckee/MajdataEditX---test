@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MajdataEdit.Utils;
+using Newtonsoft.Json;
 using System.IO;
 using System.Windows;
 using Un4seen.Bass;

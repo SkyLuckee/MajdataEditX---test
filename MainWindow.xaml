@@ -105,6 +105,9 @@
                     <MenuItem Header="{lex:Loc Mirror45}" Click="Mirror45_MenuItem_Click" />
                     <MenuItem Header="{lex:Loc MirrorCcw45}" Click="MirrorCcw45_MenuItem_Click" />
                     <Separator />
+                    <MenuItem Header="{lex:Loc SubDivide1p5}" Click="SubDivide1p5_MenuItem_Click" />
+                    <MenuItem Header="{lex:Loc SubDivide2}" Click="SubDivide2_MenuItem_Click" />
+                    <Separator />
                     <MenuItem x:Name="MapInfo" Header="{lex:Loc MapInfo}" Click="MenuItem_InfomationEdit_Click" />
                     <Separator />
                     <MenuItem Header="{lex:Loc FindAndReplace}" Click="MenuFind_Click" />

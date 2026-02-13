@@ -615,4 +615,10 @@ Click OK to start render.</value>
   <data name="UserLeft" xml:space="preserve">
     <value>{0} Left Chart Share {1}</value>
   </data>
+  <data name="SubDivide1p5" xml:space="preserve">
+    <value>Subdivide by 1.5 times</value>
+  </data>
+  <data name="SubDivide2" xml:space="preserve">
+    <value>Subdivide by 2 times</value>
+  </data>
 </root>

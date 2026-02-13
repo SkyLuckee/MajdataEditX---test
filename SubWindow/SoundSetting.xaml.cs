@@ -78,7 +78,7 @@ public partial class SoundSetting : Window
         for (var i = 0; i < channels.Length; i++)
         {
             Bass.BASS_ChannelGetAttribute(channels[i], BASSAttribute.BASS_ATTRIB_VOL, ref ampLevel);
-            values[i] = Utils.LevelToDB(Utils.LowWord(Bass.BASS_ChannelGetLevel(channels[i])) * ampLevel, 32768) + 40;
+            values[i] = Un4seen.Bass.Utils.LevelToDB(Un4seen.Bass.Utils.LowWord(Bass.BASS_ChannelGetLevel(channels[i])) * ampLevel, 32768) + 40;
         }
 
         var value = values.Max();

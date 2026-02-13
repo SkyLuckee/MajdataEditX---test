@@ -1,5 +1,6 @@
 ﻿using DiscordRPC;
 using MajdataEdit.SyntaxModule;
+using MajdataEdit.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Semver;

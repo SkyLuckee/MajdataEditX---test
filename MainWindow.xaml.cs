@@ -3,6 +3,7 @@ using MajdataEdit.AutoSaveModule;
 using MajdataEdit.ChartShare;
 using MajdataEdit.MaiMuriDX;
 using MajdataEdit.SyntaxModule;
+using MajdataEdit.Utils;
 using MajSimai;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;
@@ -840,6 +841,16 @@ public partial class MainWindow : Window
     private void MirrorCcw45_MenuItem_Click(object? sender, RoutedEventArgs e)
     {
         ApplyMirror(Mirror.HandleType.CcwRotation45);
+    }
+
+    private void SubDivide1p5_MenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        ApplySubDevide(1.5f);
+    }
+
+    private void SubDivide2_MenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        ApplySubDevide(2f);
     }
 
     private void BPMtap_MenuItem_Click(object? sender, RoutedEventArgs e)

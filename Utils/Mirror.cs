@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace MajdataEdit;
+namespace MajdataEdit.Utils;
 
 //小额负责的部分哟
 public static class Mirror
