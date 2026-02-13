@@ -274,48 +274,62 @@ public partial class MainWindow : Window
 
             graphics.DrawLines(pen, points.ToArray());
 
-            //Draw Bpm lines
-            var lastbpm = -1f;
-            var bpmChangeTimes = new List<double>(); //在什么时间变成什么值
-            var bpmChangeValues = new List<float>();
-            bpmChangeTimes.Clear();
-            bpmChangeValues.Clear();
-            if (SimaiProcess.timingLists[selectedDifficulty] != null)
-                foreach (var timing in SimaiProcess.timingLists[selectedDifficulty])
-                    if (timing.Bpm != lastbpm)
-                    {
-                        bpmChangeTimes.Add(timing.Timing);
-                        bpmChangeValues.Add(timing.Bpm);
-                        lastbpm = timing.Bpm;
-                    }
+            // 提取所有的节奏变更点（BPM 或 节拍记号 改变时）
+            var bpmChanges = new List<(double Time, float Bpm, int Numerator, int Denominator)>();
+            float lastBpm = -1f;
+            int lastNum = -1;
+            int lastDen = -1;
 
-            bpmChangeTimes.Add(Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetLength(bgmStream)));
+            foreach (var timing in SimaiProcess.timingLists[selectedDifficulty])
+            {
+                if (timing == null) continue;
+                if (timing.Bpm != lastBpm || timing.SignatureNumerator != lastNum || timing.SignatureDenominator != lastDen)
+                {
+                    bpmChanges.Add((timing.Timing, timing.Bpm, timing.SignatureNumerator, timing.SignatureDenominator));
+                    lastBpm = timing.Bpm;
+                    lastNum = timing.SignatureNumerator;
+                    lastDen = timing.SignatureDenominator;
+                }
+            }
+
+            // 添加音频结尾作为计算终点
+            double audioEndTime = Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetLength(bgmStream));
+            bpmChanges.Add((audioEndTime, lastBpm, lastNum, lastDen));
 
             double time = SimaiProcess.simaiFile.Offset;
-            var signature = 4; //预留拍号
-            var currentBeat = 1;
-            var timePerBeat = 0d;
-            pen = new Pen(Color.Yellow, 1);
+            int currentBeat = 1;
             var strongBeat = new List<double>();
             var weakBeat = new List<double>();
-            for (var i = 1; i < bpmChangeTimes.Count; i++)
+
+            for (var i = 0; i < bpmChanges.Count - 1; i++)
             {
-                while (time - bpmChangeTimes[i] < -0.05) //在那个时间之前都是之前的bpm
+                var (Time, Bpm, Numerator, Denominator) = bpmChanges[i];
+                var nextSegTime = bpmChanges[i + 1].Time;
+
+                // 只要当前时间还没到下一个变更点，就按当前的节奏参数走
+                while (time < nextSegTime - 0.05)
                 {
-                    if (currentBeat > signature) currentBeat = 1;
-                    timePerBeat = 1d / (bpmChangeValues[i - 1] / 60d);
+                    // 如果超过了当前小节的分子，重置为第一拍
+                    if (currentBeat > Numerator) currentBeat = 1;
+
+                    // 计算当前 BPM 下一拍的时长： (60/BPM) * (4/分母)
+                    double timePerBeat = (60d / Bpm) * (4.0 / Denominator);
+
                     if (currentBeat == 1)
                         strongBeat.Add(time);
                     else
                         weakBeat.Add(time);
+
                     currentBeat++;
                     time += timePerBeat;
                 }
 
-                time = bpmChangeTimes[i];
+                time = nextSegTime;
                 currentBeat = 1;
             }
 
+            // Draw strong beat
+            pen = new Pen(Color.Yellow, 1);
             foreach (var btime in strongBeat)
             {
                 if (btime - currentTime > deltatime) continue;
@@ -323,6 +337,7 @@ public partial class MainWindow : Window
                 graphics.DrawLine(pen, x, 0, x, 75);
             }
 
+            // Draw weak beat
             foreach (var btime in weakBeat)
             {
                 if (btime - currentTime > deltatime) continue;
@@ -330,7 +345,7 @@ public partial class MainWindow : Window
                 graphics.DrawLine(pen, x, 0, x, 15);
             }
 
-            //Draw timing lines
+            // Draw timing lines
             pen = new Pen(Color.White, 1);
             foreach (var note in SimaiProcess.timingLists[selectedDifficulty])
             {
