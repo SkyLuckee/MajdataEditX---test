@@ -66,6 +66,7 @@ public partial class MainWindow : Window
         Menu_ExportRender.IsEnabled = false;
         SyntaxCheckButton.IsEnabled = false;
         MaiMuriDX.IsEnabled = false;
+        Menu_ToggleChartShare.IsEnabled = false;
 
         // window title
         TheWindow.Title = GetWindowsTitleString();
@@ -96,6 +97,7 @@ public partial class MainWindow : Window
             SyntaxCheckButton.IsEnabled = true;
             MaiMuriDX.IsEnabled = true;
             MapInfo.IsEnabled = true;
+            Menu_ToggleChartShare.IsEnabled = true;
 
             // limit for editor
             LevelSelector.IsEnabled = true;

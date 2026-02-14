@@ -239,7 +239,7 @@ public partial class MainWindow : Window
         }
     }
 
-    public void SetSavedState(bool state) // UI修改和程序逻辑被迫混在一起了
+    public void SetSavedState(bool state, bool broadcost = true) // UI修改和程序逻辑被迫混在一起了
     {
         if (IsShare)
         {
@@ -253,6 +253,8 @@ public partial class MainWindow : Window
                 isSaved = false;
                 TheWindow.Title = GetWindowsTitleString(GetLocalizedString("Unsaved") + SimaiProcess.simaiFile.Title! + " Share");
             }
+
+            if (broadcost) _client!.InvokeAsync(nameof(ChartHub.ChangeSaveState), state);
         }
         else
         {
@@ -304,6 +306,7 @@ public partial class MainWindow : Window
     private void SaveFumen(bool writeToDisk)
     {
         if (string.IsNullOrWhiteSpace(maidataDir)) return;
+        if (IsLoading) return;
 
         string _maidataDir = maidataDir;
         if (IsShare)
@@ -311,10 +314,9 @@ public partial class MainWindow : Window
             if (IsHost) _maidataDir = originMaidataDir;
             else
             {
-                _client!.InvokeAsync(nameof(ChartHub.SaveFumen), false);
+                _client!.InvokeAsync(nameof(ChartHub.SaveFumen));
                 return;
             }
-            _client!.InvokeAsync(nameof(ChartHub.SaveFumen), true);
         }
 
         SimaiProcess.fumens[selectedDifficulty] = GetRawFumenText();

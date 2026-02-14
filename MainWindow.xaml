@@ -87,7 +87,7 @@
                     <MenuItem x:Name="Menu_CloseChart" Header="{lex:Loc CloseChart}" Click="Menu_CloseChart_Click" />
                     <Separator />
                     <MenuItem x:Name="Menu_ToggleChartShare" Header="{lex:Loc StartChartShare}"
-                          Click="Menu_ToggleChartShare_Click" />
+                          Click="Menu_ToggleChartShare_Click" IsEnabled="False"/>
                     <MenuItem x:Name="Menu_ConnectChartShare" Header="{lex:Loc ConnectChartShare}"
                           Click="Menu_ConnectChartShare_Click" />
                     <Separator />

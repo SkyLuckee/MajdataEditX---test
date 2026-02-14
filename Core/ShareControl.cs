@@ -31,11 +31,6 @@ public partial class MainWindow : Window
         }
 
         var text = GetRawFumenText();
-        if (text == "")
-        {
-            MessageBox.Show(GetLocalizedString("ShareEmpty"), GetLocalizedString("Error"));
-            return;
-        }
         _shadowText = text;
         var cds = new HubDataService(
             SimaiProcess.simaiFile.Title,
@@ -208,8 +203,16 @@ public partial class MainWindow : Window
             {
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    if (text == "") SetSavedState(true); //为空表示只是状态更新
-                    else SaveFumen(true);
+                    SaveFumen(true);
+                });
+            });
+
+            //接收到保存状态变化
+            _client.On<bool>(nameof(IEditorClient.OnSaveStateChange), async (state) =>
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    SetSavedState(state, false);
                 });
             });
 

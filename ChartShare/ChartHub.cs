@@ -67,9 +67,13 @@ public class ChartHub : Hub<IEditorClient>
         return base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SaveFumen(bool isStateChangeOnly)
+    public async Task SaveFumen()
     {
-        if (isStateChangeOnly) await Clients.All.OnSaveFumen("");
-        else await Clients.Client(dataService.HostId).OnSaveFumen(dataService.CurrentText);
+        await Clients.Client(dataService.HostId).OnSaveFumen(dataService.CurrentText);
+    }
+
+    public async Task ChangeSaveState(bool state)
+    {
+        await Clients.Others.OnSaveStateChange(state);
     }
 }

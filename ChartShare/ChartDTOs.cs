@@ -9,6 +9,7 @@
         Task OnUserJoined(ClientConnectDto data);
         Task OnUserLeft(ClientConnectDto data, string message);
         Task OnSaveFumen(string text);
+        Task OnSaveStateChange(bool state);
     }
 
     // --- 数据包定义 ---
