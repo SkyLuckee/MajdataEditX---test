@@ -1078,6 +1078,7 @@ public partial class MainWindow : Window
 
     private async void OffsetTextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (IsLoading) return;
         SetSavedState(false);
         if (string.IsNullOrWhiteSpace(OffsetTextBox.Text))
             OffsetTextBox.Text = "0";
@@ -1123,6 +1124,7 @@ public partial class MainWindow : Window
 
     private async void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
+        if (IsLoading) return;
         NoteNowText.Content = 
             (FumenContent.Text[..FumenContent.CaretIndex] //.Replace("\r", "") //没区别
                                       .Count(o => o == '\n') + 1) + " 行";
