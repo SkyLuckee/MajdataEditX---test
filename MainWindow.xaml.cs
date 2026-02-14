@@ -79,15 +79,15 @@ public partial class MainWindow : Window
         IsLoading = value;
         if (value)
         {
-            Cover.Visibility = Visibility.Hidden;
+            Cover.Visibility = Visibility.Visible;
+            MenuBar.IsEnabled = false;
         }
         else
         {
             // hide cover animation
             if (Cover.Visibility == Visibility.Visible)
                 ((Storyboard)Resources["CoverHide"]).Begin();
-            else if (Cover.Visibility == Visibility.Hidden)
-                Cover.Visibility = Visibility.Collapsed;
+            MenuBar.IsEnabled = true;
 
             // limit for menu
             MenuEdit.IsEnabled = true;
@@ -122,6 +122,8 @@ public partial class MainWindow : Window
             LevelTextBox.IsEnabled = false;
             OffsetTextBox.IsEnabled = false;
 
+            Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare");
+
             // window title
             TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title + " Share");
         }
@@ -138,6 +140,8 @@ public partial class MainWindow : Window
             LevelTextBox.IsEnabled = true;
             OffsetTextBox.IsEnabled = true;
 
+            Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
+
             // window title
             TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title);
         }
@@ -151,7 +155,6 @@ public partial class MainWindow : Window
             Global_Grid.RowDefinitions[2].Height = new GridLength(20); //show status bar
             ShareStatus.Text = string.Format(GetLocalizedString("ShareModeServer"), GetLocalIPAddress());
             Menu_ToggleChartShare.Header = GetLocalizedString("StopChartShare");
-            Menu_ConnectChartShare.Header = GetLocalizedString("DisconnectChartShare");
             Menu_ConnectChartShare.IsEnabled = false; //房主不能自己断掉与自己的连接
         }
         else
@@ -160,7 +163,6 @@ public partial class MainWindow : Window
             Global_Grid.RowDefinitions[2].Height = new GridLength(0); //hide status bar
             ShareStatus.DataContext = null;
             Menu_ToggleChartShare.Header = GetLocalizedString("StartChartShare");
-            Menu_ConnectChartShare.Header = GetLocalizedString("ConnectChartShare");
             Menu_ConnectChartShare.IsEnabled = true;
         }
     }
@@ -280,7 +282,7 @@ public partial class MainWindow : Window
             int lastNum = -1;
             int lastDen = -1;
 
-            foreach (var timing in SimaiProcess.timingLists[selectedDifficulty])
+            foreach (var timing in SimaiProcess.timingLists[selectedDifficulty] ?? new())
             {
                 if (timing == null) continue;
                 if (timing.Bpm != lastBpm || timing.SignatureNumerator != lastNum || timing.SignatureDenominator != lastDen)
@@ -347,7 +349,7 @@ public partial class MainWindow : Window
 
             // Draw timing lines
             pen = new Pen(Color.White, 1);
-            foreach (var note in SimaiProcess.timingLists[selectedDifficulty])
+            foreach (var note in SimaiProcess.timingLists[selectedDifficulty] ?? new())
             {
                 if (note == null) break;
                 if (note.Timing - currentTime > deltatime) continue;
@@ -356,7 +358,7 @@ public partial class MainWindow : Window
             }
 
             //Draw notes                    
-            foreach (var note in SimaiProcess.noteLists[selectedDifficulty])
+            foreach (var note in SimaiProcess.noteLists[selectedDifficulty] ?? new())
             {
                 if (note == null) break;
                 if (note.Timing - currentTime > deltatime) continue;
@@ -1129,7 +1131,7 @@ public partial class MainWindow : Window
 
         await SimaiProcess.Serialize(GetRawFumenText());
 
-        var timings = SimaiProcess.timingLists[selectedDifficulty];
+        var timings = SimaiProcess.timingLists[selectedDifficulty] ?? new();
         double time = 0d;
         foreach (var timing in timings)
         {

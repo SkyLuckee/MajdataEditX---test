@@ -240,7 +240,7 @@ public partial class MainWindow : Window
         catch (Exception exception)
         {
             MessageBox.Show(string.Format(GetLocalizedString("ConnectFail"), exception.Message + exception.InnerException?.Message), GetLocalizedString("Error"));
-            _client = null;
+            await DisconnectToChartServer();
             set_share(false);
             return false;
         }

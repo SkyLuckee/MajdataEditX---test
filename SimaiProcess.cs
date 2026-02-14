@@ -90,8 +90,10 @@ internal static class SimaiProcess
         try
         {
             MainWindow.instance.report_fatal_error(null);
-            var chart = await SimaiParser.ParseChartAsync(text);
             var selectedDiff = MainWindow.selectedDifficulty;
+            noteLists[selectedDiff] = new();
+            timingLists[selectedDiff] = new();
+            var chart = await SimaiParser.ParseChartAsync(text);
             OriginNoteLists[selectedDiff] = chart.NoteTimings.ToArray().ToList();
             OriginTimingLists[selectedDiff] = chart.CommaTimings.ToArray().ToList();
             noteLists[selectedDiff] = new(OriginNoteLists[selectedDiff]);

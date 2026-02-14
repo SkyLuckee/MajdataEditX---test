@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
         xmlns:local="clr-namespace:MajdataEdit"
+        xmlns:properties="clr-namespace:MajdataEdit.Properties" 
         lex:LocalizeDictionary.DesignCulture="zh-CN"
         lex:ResxLocalizationProvider.DefaultAssembly="MajdataEdit"
         lex:ResxLocalizationProvider.DefaultDictionary="Langs"
@@ -52,13 +53,19 @@
                Content="{lex:Loc Key=ConnectIP}" />
         <TextBox x:Name="ConnectIP"
                  Grid.Row="0" Grid.Column="1"
-                 Text="127.0.0.1" />
+                 Text="{Binding Source={x:Static properties:Settings.Default}, 
+                                Path=LastServerAddress, 
+                                Mode=TwoWay, 
+                                UpdateSourceTrigger=PropertyChanged}" />
         
         <Label Grid.Row="1" Grid.Column="0"
                Content="{lex:Loc Key=ConnectPort}" />
         <TextBox x:Name="ConnectPort"
                  Grid.Row="1" Grid.Column="1"
-                 Text="8014" />
+                 Text="{Binding Source={x:Static properties:Settings.Default}, 
+                                Path=LastServerPort, 
+                                Mode=TwoWay, 
+                                UpdateSourceTrigger=PropertyChanged}" />
 
         <StackPanel Orientation="Horizontal"
                     Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center">

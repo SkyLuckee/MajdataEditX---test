@@ -130,102 +130,113 @@ public partial class MainWindow : Window
 
     public async Task InitFromShare(string fileUrl, GuestInitDto data)
     {
-        set_loading(true);
-
-        FumenContent.IsUndoEnabled = false;
-
-        // close all
-        ClearWindow();
-
-        // initalize data
-        if (editorSetting == null) ReadEditorSetting();
-
-        // check path
-        var basePath = Environment.CurrentDirectory + "/Sharing";
-        Directory.CreateDirectory(basePath); //防止没有Sharing文件夹
-
-        // get files
-        useOgg = data.UseOgg;
-        HttpClient httpClient = new(new HttpClientHandler
+        try
         {
-            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+            set_loading(true);
+
+            FumenContent.IsUndoEnabled = false;
+
+            // close all
+            ClearWindow();
+
+            // initalize data
+            if (editorSetting == null) ReadEditorSetting();
+
+            // check path
+            var basePath = Environment.CurrentDirectory + "/Sharing";
+            Directory.CreateDirectory(basePath); //防止没有Sharing文件夹
+
+            // get files
+            useOgg = data.UseOgg;
+            HttpClient httpClient = new(new HttpClientHandler
             {
-                if (cert == null) return false;
-                return cert.GetPublicKey().SequenceEqual(certBytes);
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    if (cert == null) return false;
+                    return cert.GetPublicKey().SequenceEqual(certBytes);
+                }
+            });
+            //下载音频
+            var trackName = "track" + (useOgg ? ".ogg" : ".mp3");
+            string localAudioPath = Path.Combine(basePath, trackName);
+            using (var stream = await httpClient.GetStreamAsync(fileUrl + "/" + trackName))
+            using (var fs = new FileStream(localAudioPath, FileMode.Create))
+            {
+                await stream.CopyToAsync(fs);
             }
-        });
-        //下载音频
-        var trackName = "track" + (useOgg ? ".ogg" : ".mp3");
-        string localAudioPath = Path.Combine(basePath, trackName);
-        using (var stream = await httpClient.GetStreamAsync(fileUrl + "/" + trackName))
-        using (var fs = new FileStream(localAudioPath, FileMode.Create))
-        {
-            await stream.CopyToAsync(fs);
+            //下载MajSettings
+            string localSettingPath = Path.Combine(basePath, majSettingFilename);
+            byte[] settingBytes = await httpClient.GetByteArrayAsync(fileUrl + "/" + majSettingFilename);
+            await File.WriteAllBytesAsync(localSettingPath, settingBytes);
+
+            if (IsHost) originMaidataDir = maidataDir;
+            maidataDir = basePath;
+            audioDir = localAudioPath;
+
+            // music initalize
+            var decodeStream = Bass.BASS_StreamCreateFile(audioDir, 0L, 0L, BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
+            bgmStream = BassFx.BASS_FX_TempoCreate(decodeStream, BASSFlag.BASS_FX_FREESOURCE);
+            Bass.BASS_ChannelGetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, ref originFreq);
+
+            //ReadSetting(); //此处不用该函数并自定义覆盖，没有default打底但绝逼有拉过来的数据所以没关系
+            var setting = JsonConvert.DeserializeObject<MajSetting>(File.ReadAllText(localSettingPath));
+            SetBgmPosition(setting!.lastEditTime);
+            Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+            Bass.BASS_ChannelSetAttribute(trackStartStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+            Bass.BASS_ChannelSetAttribute(allperfectStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+            Bass.BASS_ChannelSetAttribute(fanfareStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+            Bass.BASS_ChannelSetAttribute(clockStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
+            Bass.BASS_ChannelSetAttribute(answerStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Answer_Level);
+            Bass.BASS_ChannelSetAttribute(judgeStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Judge_Level);
+            Bass.BASS_ChannelSetAttribute(judgeBreakStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Level);
+            Bass.BASS_ChannelSetAttribute(judgeBreakSlideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Slide_Level);
+            Bass.BASS_ChannelSetAttribute(slideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Slide_Level);
+            Bass.BASS_ChannelSetAttribute(breakSlideStartStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Slide_Level);
+            Bass.BASS_ChannelSetAttribute(breakStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Level);
+            Bass.BASS_ChannelSetAttribute(breakSlideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Slide_Level);
+            Bass.BASS_ChannelSetAttribute(judgeExStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Ex_Level);
+            Bass.BASS_ChannelSetAttribute(touchStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Touch_Level);
+            Bass.BASS_ChannelSetAttribute(hanabiStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
+            Bass.BASS_ChannelSetAttribute(holdRiserStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
+
+            var info = Bass.BASS_ChannelGetInfo(bgmStream);
+            if (info.freq != 44100) MessageBox.Show(GetLocalizedString("Warn44100Hz"), GetLocalizedString("Attention"));
+
+            // decode wave
+            ReadWaveFromFile();
+
+
+            // load data
+            //if (!SimaiProcess.ReadData(dataPath)) return;
+            SetRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
+            await SimaiProcess.Serialize(GetRawFumenText());
+            SimaiProcess.simaiFile.Title = data.Name;
+            SimaiProcess.simaiFile.Offset = data.Offset;
+            selectedDifficulty = data.Diff;
+            SimaiProcess.levels[selectedDifficulty] = data.Level;
+            SimaiProcess.fumens[selectedDifficulty] = data.Text;
+            LevelSelector.SelectedIndex = selectedDifficulty;
+            OffsetTextBox.Text = SimaiProcess.simaiFile.Offset.ToString();
+
+            SeekTextFromTime();
+
+
+            AutoSaveManager.Of().SetAutoSaveEnable(false);
+            isSaved = true;
+            SyntaxCheck();
+            _shadowText = FumenContent.Text; // 影子文本和UI直接挂钩，没必要用不带\r的
+
+            FumenContent.IsUndoEnabled = true; //清一下撤销栈
+
+            set_loading(false);
         }
-        //下载MajSettings
-        string localSettingPath = Path.Combine(basePath, majSettingFilename);
-        byte[] settingBytes = await httpClient.GetByteArrayAsync(fileUrl + "/" + majSettingFilename);
-        await File.WriteAllBytesAsync(localSettingPath, settingBytes);
-
-        if (IsHost) originMaidataDir = maidataDir;
-        maidataDir = basePath;
-        audioDir = localAudioPath;
-
-        // music initalize
-        var decodeStream = Bass.BASS_StreamCreateFile(audioDir, 0L, 0L, BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
-        bgmStream = BassFx.BASS_FX_TempoCreate(decodeStream, BASSFlag.BASS_FX_FREESOURCE);
-        Bass.BASS_ChannelGetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, ref originFreq);
-
-        //ReadSetting(); //此处不用该函数并自定义覆盖，没有default打底但绝逼有拉过来的数据所以没关系
-        var setting = JsonConvert.DeserializeObject<MajSetting>(File.ReadAllText(localSettingPath));
-        SetBgmPosition(setting!.lastEditTime);
-        Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
-        Bass.BASS_ChannelSetAttribute(trackStartStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
-        Bass.BASS_ChannelSetAttribute(allperfectStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
-        Bass.BASS_ChannelSetAttribute(fanfareStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
-        Bass.BASS_ChannelSetAttribute(clockStream, BASSAttribute.BASS_ATTRIB_VOL, setting.BGM_Level);
-        Bass.BASS_ChannelSetAttribute(answerStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Answer_Level);
-        Bass.BASS_ChannelSetAttribute(judgeStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Judge_Level);
-        Bass.BASS_ChannelSetAttribute(judgeBreakStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Level);
-        Bass.BASS_ChannelSetAttribute(judgeBreakSlideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Slide_Level);
-        Bass.BASS_ChannelSetAttribute(slideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Slide_Level);
-        Bass.BASS_ChannelSetAttribute(breakSlideStartStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Slide_Level);
-        Bass.BASS_ChannelSetAttribute(breakStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Level);
-        Bass.BASS_ChannelSetAttribute(breakSlideStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Break_Slide_Level);
-        Bass.BASS_ChannelSetAttribute(judgeExStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Ex_Level);
-        Bass.BASS_ChannelSetAttribute(touchStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Touch_Level);
-        Bass.BASS_ChannelSetAttribute(hanabiStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
-        Bass.BASS_ChannelSetAttribute(holdRiserStream, BASSAttribute.BASS_ATTRIB_VOL, setting.Hanabi_Level);
-
-        var info = Bass.BASS_ChannelGetInfo(bgmStream);
-        if (info.freq != 44100) MessageBox.Show(GetLocalizedString("Warn44100Hz"), GetLocalizedString("Attention"));
-
-        // decode wave
-        ReadWaveFromFile();
-
-
-        // load data
-        //if (!SimaiProcess.ReadData(dataPath)) return;
-        SimaiProcess.simaiFile.Title = data.Name;
-        SimaiProcess.simaiFile.Offset = data.Offset;
-        selectedDifficulty = data.Diff;
-        SimaiProcess.levels[selectedDifficulty] = data.Level;
-        SimaiProcess.fumens[selectedDifficulty] = data.Text;
-        LevelSelector.SelectedIndex = selectedDifficulty;
-        OffsetTextBox.Text = SimaiProcess.simaiFile.Offset.ToString();
-
-        SetRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
-        await SimaiProcess.Serialize(GetRawFumenText());
-        SeekTextFromTime();
-
-        AutoSaveManager.Of().SetAutoSaveEnable(false);
-        isSaved = true;
-        SyntaxCheck();
-        _shadowText = FumenContent.Text; // 影子文本和UI直接挂钩，没必要用不带\r的
-
-        FumenContent.IsUndoEnabled = true; //清一下撤销栈
-
-        set_loading(false);
+        catch (Exception e)
+        {
+            MessageBox.Show(string.Format(GetLocalizedString("ConnectFail"), e.Message + e.InnerException?.Message), GetLocalizedString("Error"));
+            await DisconnectToChartServer();
+            set_loading(false);
+            set_share(false);
+        }
     }
 
     public void SetSavedState(bool state) // UI修改和程序逻辑被迫混在一起了
