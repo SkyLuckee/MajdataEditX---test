@@ -19,6 +19,7 @@ namespace MajdataEdit
             try
             {
                 connectFunc(ConnectIP.Text, int.Parse(ConnectPort.Text));
+                Properties.Settings.Default.Save();
             }
             catch (Exception)
             {
