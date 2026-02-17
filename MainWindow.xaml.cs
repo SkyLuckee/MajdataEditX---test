@@ -365,7 +365,7 @@ public partial class MainWindow : Window
                 if (note == null) break;
                 if (note.Timing - currentTime > deltatime) continue;
                 var notes = note.Notes;
-                var isEach = notes.Count(o => !o.IsSlideNoHead) > 1;
+                var isEach = notes.Count(o => !o.IsSlideNoHead && !o.IsMine) > 1;
 
                 var x = ((float)(note.Timing / step) - startindex) * linewidth;
 
@@ -397,6 +397,8 @@ public partial class MainWindow : Window
                                 pen.Color = Color.OrangeRed;
                             else if (isEach)
                                 pen.Color = Color.Gold;
+                            else if (noteD.IsMine)
+                                pen.Color = Color.LightGray;
                             else
                                 pen.Color = Color.DeepSkyBlue;
                             Brush brush = new SolidBrush(pen.Color);
@@ -410,6 +412,8 @@ public partial class MainWindow : Window
                                 pen.Color = Color.OrangeRed;
                             else if (isEach)
                                 pen.Color = Color.Gold;
+                            else if (noteD.IsMine)
+                                pen.Color = Color.LightGray;
                             else
                                 pen.Color = Color.LightPink;
                             graphics.DrawEllipse(pen, x - 2.5f, y - 2.5f, 5, 5);
@@ -419,7 +423,14 @@ public partial class MainWindow : Window
                     if (noteD.Type == SimaiNoteType.Touch)
                     {
                         pen.Width = 2;
-                        pen.Color = isEach ? Color.Gold : Color.DeepSkyBlue;
+                        if (noteD.IsBreak)
+                            pen.Color = Color.OrangeRed;
+                        else if (isEach)
+                            pen.Color = Color.Gold;
+                        else if (noteD.IsMine)
+                            pen.Color = Color.LightGray;
+                        else
+                            pen.Color = Color.DeepSkyBlue;
                         graphics.DrawRectangle(pen, x - 2.5f, y - 2.5f, 5, 5);
                     }
 
@@ -430,6 +441,8 @@ public partial class MainWindow : Window
                             pen.Color = Color.OrangeRed;
                         else if (isEach)
                             pen.Color = Color.Gold;
+                        else if (noteD.IsMine)
+                            pen.Color = Color.LightGray;
                         else
                             pen.Color = Color.LightPink;
 
@@ -447,14 +460,16 @@ public partial class MainWindow : Window
                         pen.Width = 3;
                         var xDelta = (float)(noteD.HoldTime / step) * linewidth / 4f;
                         //Console.WriteLine("HoldPixel"+ xDelta);
-                        if (!float.IsNormal(xDelta)) xDelta = ushort.MaxValue;
-                        if (xDelta < 1f) xDelta = 1;
 
                         pen.Color = Color.FromArgb(200, 255, 75, 0);
+                        if (noteD.IsMine)
+                            pen.Color = Color.LightGray;
                         graphics.DrawLine(pen, x, y, x + xDelta * 4f, y);
                         pen.Color = Color.FromArgb(200, 255, 241, 0);
                         graphics.DrawLine(pen, x, y, x + xDelta * 3f, y);
                         pen.Color = Color.FromArgb(200, 2, 165, 89);
+                        if (noteD.IsMine)
+                            pen.Color = Color.Gray;
                         graphics.DrawLine(pen, x, y, x + xDelta * 2f, y);
                         pen.Color = Color.FromArgb(200, 0, 140, 254);
                         graphics.DrawLine(pen, x, y, x + xDelta, y);
@@ -469,6 +484,8 @@ public partial class MainWindow : Window
                                 pen.Color = Color.OrangeRed;
                             else if (isEach)
                                 pen.Color = Color.Gold;
+                            else if (noteD.IsMine)
+                                pen.Color = Color.LightGray;
                             else
                                 pen.Color = Color.DeepSkyBlue;
                             Brush brush = new SolidBrush(pen.Color);
@@ -478,10 +495,13 @@ public partial class MainWindow : Window
 
                         if (noteD.IsSlideBreak)
                             pen.Color = System.Drawing.Color.OrangeRed;
-                        else if (notes.Count(o => o.Type == SimaiNoteType.Slide) >= 2)
+                        else if (notes.Count(o => o.Type == SimaiNoteType.Slide && !o.IsMineSlide) >= 2)
                             pen.Color = Color.Gold;
+                        else if (noteD.IsMine)
+                            pen.Color = Color.LightGray;
                         else
                             pen.Color = Color.SkyBlue;
+
                         pen.DashStyle = DashStyle.Dot;
                         var xSlide = (float)(noteD.SlideStartTime / step - startindex) * linewidth;
                         var xSlideRight = (float)(noteD.SlideTime / step) * linewidth + xSlide;
