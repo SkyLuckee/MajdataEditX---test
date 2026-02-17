@@ -58,7 +58,7 @@ public partial class MainWindow : Window
                 MessageBox.Show(GetLocalizedString("AskRender"), GetLocalizedString("Attention"));
                 InternalSwitchWindow(false);
                 generateSoundEffectList(0.0, isOpIncluded);
-                var task = new Task(() => renderSoundEffect(5d));
+                var task = new Task(() => renderSoundEffect(5d / GetPlaybackSpeed()));
                 try
                 {
                     task.Start();
@@ -193,27 +193,7 @@ public partial class MainWindow : Window
         SetPlaybackSpeed(PlayBackSpeedSelector.SelectedIndex + speedItemDiff);
     }
 
-    private float GetPlaybackSpeed()
-    {
-        int speed = 0;
-        this.Dispatcher.Invoke(() =>
-        {
-            speed = PlayBackSpeedSelector.SelectedIndex switch
-            {
-                0 => -90,
-                1 => -75,
-                2 => -50,
-                3 => -25,
-                4 => 0,
-                5 => 50,
-                6 => 75,
-                7 => 100,
-                _ => 0
-            };
-        });
-
-        return speed / 100f + 1f;
-    }
+    private float GetPlaybackSpeed() => playbackSpeed;
 
     private void SetBgmPosition(double time)
     {

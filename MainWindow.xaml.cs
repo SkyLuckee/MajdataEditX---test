@@ -1302,4 +1302,19 @@ public partial class MainWindow : Window
     {
         SetRawFumenPosition(fatalError!.Position.x, fatalError.Position.y-1);
     }
+
+    private void PlayBackSpeedSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        playbackSpeed = PlayBackSpeedSelector.SelectedIndex switch
+        {
+            0 => 0.1f,
+            1 => 0.25f,
+            2 => 0.5f,
+            3 => 0.75f,
+            4 => 1f,
+            5 => 1.5f,
+            6 => 2f,
+            _ => 1f
+        };
+    }
 }

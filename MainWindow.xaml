@@ -251,7 +251,7 @@
         <ComboBox x:Name="PlayBackSpeedSelector" Margin="7,241,0,0" 
                   HorizontalAlignment="Left" Width="87" Height="21" VerticalAlignment="Top" SelectedIndex="4"
                   Background="{DynamicResource ButtonsBackground}" Foreground="{DynamicResource ButtonForeground}"
-                  Template="{DynamicResource DarkComboBox}" Grid.Row="1" Grid.Column="1">
+                  Template="{DynamicResource DarkComboBox}" Grid.Row="1" Grid.Column="1" SelectionChanged="PlayBackSpeedSelector_SelectionChanged">
             <ComboBoxItem Content="0.10x" />
             <ComboBoxItem Content="0.25x" />
             <ComboBoxItem Content="0.50x" />
