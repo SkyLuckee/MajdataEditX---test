@@ -67,6 +67,7 @@ public partial class EditorSettingPanel : Window
         ChartRefreshDelay.Text = window.editorSetting.ChartRefreshDelay.ToString();
         AutoUpdate.IsChecked = window.editorSetting.AutoCheckUpdate;
         SmoothSlideAnime.IsChecked = window.editorSetting.SmoothSlideAnime;
+        EditorFontSize.Text = window.editorSetting.FontSize.ToString();
 
         ShareUserName.Text = window.editorSetting.ShareUserName;
         ShareColorHex.Text = window.editorSetting.ShareColorHex;
@@ -115,6 +116,7 @@ public partial class EditorSettingPanel : Window
         window.editorSetting!.touchSpeed = float.Parse(ViewerTouchSpeed.Text);
         window.editorSetting!.ChartRefreshDelay = int.Parse(ChartRefreshDelay.Text);
         window.editorSetting!.AutoCheckUpdate = (bool) AutoUpdate.IsChecked!;
+        window.editorSetting!.FontSize = float.Parse(EditorFontSize.Text);
         window.editorSetting!.SmoothSlideAnime = (bool) SmoothSlideAnime.IsChecked!;
         window.editorSetting!.editorPlayMethod = (EditorPlayMethod)PlayMethod.SelectedIndex;
         // window.editorSetting.isComboEnabled = (bool) ComboDisplay.IsChecked!;
@@ -130,6 +132,7 @@ public partial class EditorSettingPanel : Window
         window.ViewerSpeed.Content = window.editorSetting.playSpeed.ToString("F1"); // 转化为形如"7.0", "9.5"这样的速度
         window.ViewerTouchSpeed.Content = window.editorSetting.touchSpeed.ToString("F1");
         window.chartChangeTimer.Interval = window.editorSetting.ChartRefreshDelay;
+        window.FumenContent.FontSize = window.editorSetting.FontSize;
 
 
         saveFlag = true;

@@ -1215,6 +1215,19 @@ public partial class MainWindow : Window
         chartChangeTimer.Start();
     }
 
+    private void FumenContent_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            var size = FumenContent.FontSize + e.Delta / 100;
+            if (size > 0)
+            {
+                editorSetting!.FontSize = (float)size;
+                FumenContent.FontSize = size;
+            }
+        }
+    }
+
     private void Find_icon_MouseDown(object? sender, MouseButtonEventArgs e)
     {
         FindAndScroll();

@@ -251,6 +251,12 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="FatalError" xml:space="preserve">
     <value>出现严重错误！{0} (L{1} C{2}) 请先解决该问题再继续编写！</value>
   </data>
+  <data name="SubDivide1p5" xml:space="preserve">
+    <value>将乐句细化到1.5倍</value>
+  </data>
+  <data name="SubDivide2" xml:space="preserve">
+    <value>将乐句细化到2倍</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -608,10 +614,7 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="UserLeft" xml:space="preserve">
     <value>{0} 离开了谱面共享 {1}</value>
   </data>
-  <data name="SubDivide1p5" xml:space="preserve">
-    <value>将乐句细化到1.5倍</value>
-  </data>
-  <data name="SubDivide2" xml:space="preserve">
-    <value>将乐句细化到2倍</value>
+  <data name="EditorFontSize" xml:space="preserve">
+    <value>字体大小</value>
   </data>
 </root>

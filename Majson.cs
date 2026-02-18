@@ -89,7 +89,7 @@ public class EditorSetting
     public float Default_Slide_Level = 0.7f;
     public float Default_Touch_Level = 0.7f;
     public float DefaultSlideAccuracy = 0.2f;
-    public float FontSize = 12;
+    public float FontSize = 14;
     public string IncreasePlaybackSpeedKey = "Ctrl+p";
     public string Language = "en-US";
     public string Mirror180Key = "Ctrl+l";

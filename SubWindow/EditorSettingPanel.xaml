@@ -52,6 +52,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -89,19 +90,31 @@
                  Grid.Row="3" Grid.Column="1"
                  Text="1000" />
 
-        <Label Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"
+        <Label Grid.Row="4" Grid.Column="0"
+               Content="{lex:Loc Key=EditorFontSize}" />
+        <TextBox x:Name="EditorFontSize"
+                 Grid.Row="4" Grid.Column="1"
+                 Text="14" />
+
+        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal">
+            <CheckBox x:Name="AutoUpdate" VerticalAlignment="Center" />
+            <Label
+            Content="{lex:Loc Key=AutoCheckUpdate}" />
+        </StackPanel>
+
+        <Label Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center"
                Content="{lex:Loc Key=ShareSetting}" FontWeight="DemiBold"/>
 
-        <Label Grid.Row="6" Grid.Column="0"
+        <Label Grid.Row="7" Grid.Column="0"
                Content="{lex:Loc Key=ShareUserName}" />
         <TextBox x:Name="ShareUserName"
-                 Grid.Row="6" Grid.Column="1"
+                 Grid.Row="7" Grid.Column="1"
                  Text="Guest" />
 
-        <Label Grid.Row="7" Grid.Column="0"
+        <Label Grid.Row="8" Grid.Column="0"
                Content="{lex:Loc Key=ShareColorHex}" />
         <TextBox x:Name="ShareColorHex"
-                 Grid.Row="7" Grid.Column="1"
+                 Grid.Row="8" Grid.Column="1"
                  Text="#FFFFFF" />
 
         <Label Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Center"
@@ -171,15 +184,10 @@
                 <TextBlock TextDecorations="Underline" FontSize="12" Text="{lex:Loc Key=WhatsThis}" />
             </Label>
         </StackPanel>
-        
-        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal">
-            <CheckBox x:Name="AutoUpdate" VerticalAlignment="Center" />
-            <Label
-            Content="{lex:Loc Key=AutoCheckUpdate}" />
-        </StackPanel>
+       
 
         <StackPanel Orientation="Horizontal"
-                    Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Center">
+                    Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Center">
             <Button x:Name="Save_Button" Content="{lex:Loc Key=Save}"
                     Width="70" Height="28" Margin="0,5,10,5"
                     Foreground="{DynamicResource ButtonForeground}"
