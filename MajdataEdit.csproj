@@ -23,6 +23,7 @@
       <None Remove="Resources\bg_dummy.jpg" />
       <None Remove="Resources\outline_find_replace_white_24dp.png" />
       <None Remove="Resources\outline_search_white_24dp.png" />
+      <None Remove="Resources\SmoothSlideWhatsThis.jpg" />
 	  <None Include="server.pfx">
 	  	<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
@@ -68,6 +69,7 @@
       <Resource Include="Resources\bg_dummy.jpg" />
       <Resource Include="Resources\outline_find_replace_white_24dp.png" />
       <Resource Include="Resources\outline_search_white_24dp.png" />
+      <Resource Include="Resources\SmoothSlideWhatsThis.jpg" />
     </ItemGroup>
     <ItemGroup>
       <Compile Update="Properties\Settings.Designer.cs">

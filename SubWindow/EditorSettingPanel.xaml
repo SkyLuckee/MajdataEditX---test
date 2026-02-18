@@ -178,6 +178,7 @@
                     <ToolTip>
                         <StackPanel>
                             <TextBlock Text="{lex:Loc Key=SmoothSlideAnimeTooltip}" />
+                            <Image Source="pack://application:,,,/Resources/SmoothSlideWhatsThis.jpg" Width="300" Height="100"/>
                         </StackPanel>
                     </ToolTip>
                 </Label.ToolTip>

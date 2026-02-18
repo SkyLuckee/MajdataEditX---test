@@ -583,7 +583,8 @@ Click OK to start render.</value>
     <value>Smooth slide animation</value>
   </data>
   <data name="SmoothSlideAnimeTooltip" xml:space="preserve">
-    <value>When enabled, the Slide Track will disappear with the star instead of one judgment area after another.</value>
+    <value>When enabled, the Slide Track will disappear with the star instead of one judgment area after another.
+(Default Auto Method Only)</value>
   </data>
   <data name="PlayMethod" xml:space="preserve">
     <value>Auto Play Method</value>

@@ -610,7 +610,8 @@ Open Browser to download latest update of Majdata?</value>
     <comment>Translation required</comment>
   </data>
   <data name="SmoothSlideAnimeTooltip" xml:space="preserve">
-    <value>When enabled, the Slide Track will disappear with the star instead of one judgment area after another.</value>
+    <value>When enabled, the Slide Track will disappear with the star instead of one judgment area after another.
+(Default Auto Method Only)</value>
     <comment>Translation required</comment>
   </data>
   <data name="PlayMethod" xml:space="preserve">

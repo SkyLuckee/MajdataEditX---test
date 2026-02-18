@@ -576,7 +576,8 @@ CP区间±{5:0.0} ms，相关判定区如下:
     <value>平滑Slide动画</value>
   </data>
   <data name="SmoothSlideAnimeTooltip" xml:space="preserve">
-    <value>启用后，Slide轨迹会随着星星消失，而不是以判定区为单位消失</value>
+    <value>启用后，Slide轨迹会随着星星消失，而不是以判定区为单位消失
+(仅在默认模拟方式起效)</value>
   </data>
   <data name="PlayMethod" xml:space="preserve">
     <value>模拟方式</value>
