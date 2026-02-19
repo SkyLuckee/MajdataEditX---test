@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib" 
         xmlns:lex="http://wpflocalizeextension.codeplex.com"
+        xmlns:local="clr-namespace:MajdataEdit"
         lex:LocalizeDictionary.DesignCulture="zh-CN"
         lex:ResxLocalizationProvider.DefaultAssembly="MajdataEdit"
         lex:ResxLocalizationProvider.DefaultDictionary="Langs"
@@ -15,7 +17,6 @@
     <Window.Resources>
 
     </Window.Resources>
-
 
     <Grid Margin="5,5,5,5">
         <Grid.Resources>
@@ -159,7 +160,7 @@
         </ComboBox>
 
         <Label Grid.Row="5" Grid.Column="2"
-       Content="{lex:Loc Key=PlayMethod}" />
+               Content="{lex:Loc Key=PlayMethod}" />
         <ComboBox x:Name="PlayMethod"
           Grid.Row="5" Grid.Column="3">
             <ComboBoxItem Content="{lex:Loc Key=PlayMethodClassic}" />
@@ -185,7 +186,16 @@
                 <TextBlock TextDecorations="Underline" FontSize="12" Text="{lex:Loc Key=WhatsThis}" />
             </Label>
         </StackPanel>
-       
+
+        <Label Grid.Row="7" Grid.Column="2"
+               Content="{lex:Loc Key=JudgeDisplay}" />
+        <ComboBox x:Name="cbJudgeDisplayMode" Grid.Row="7" Grid.Column="3" >
+            <ComboBoxItem Content="{lex:Loc Key=JudgeDisplayNone}" />
+            <ComboBoxItem Content="{lex:Loc Key=JudgeDisplayFastLate}" />
+            <ComboBoxItem Content="{lex:Loc Key=JudgeDisplayLevel}" />
+            <ComboBoxItem Content="{lex:Loc Key=JudgeDisplayBoth}" />
+        </ComboBox>
+
 
         <StackPanel Orientation="Horizontal"
                     Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Center">
@@ -200,7 +210,6 @@
                     Background="{DynamicResource ButtonsBackground}"
                     Click="Cancel_Button_Click" />
         </StackPanel>
-
     </Grid>
 
 </Window>

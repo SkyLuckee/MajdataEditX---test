@@ -252,4 +252,19 @@
   <data name="EditorFontSize" xml:space="preserve">
     <value />
   </data>
+  <data name="JudgeDisplay" xml:space="preserve">
+    <value />
+  </data>
+  <data name="JudgeDisplayNone" xml:space="preserve">
+    <value />
+  </data>
+  <data name="JudgeDisplayFastLate" xml:space="preserve">
+    <value />
+  </data>
+  <data name="JudgeDisplayLevel" xml:space="preserve">
+    <value />
+  </data>
+  <data name="JudgeDisplayBoth" xml:space="preserve">
+    <value />
+  </data>
 </root>

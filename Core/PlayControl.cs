@@ -247,7 +247,8 @@ public partial class MainWindow : Window
             startAt = StartAt.Ticks,
             startTime = (float)Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream)),
             audioSpeed = GetPlaybackSpeed(),
-            editorPlayMethod = editorSetting!.editorPlayMethod
+            editorPlayMethod = editorSetting!.EditorPlayMethod,
+            judgeDisplayMode = editorSetting!.judgeDisplayMode
         };
         var json = JsonConvert.SerializeObject(request);
         var response = WebControl.RequestPOST("http://localhost:8013/", json);
@@ -296,13 +297,14 @@ public partial class MainWindow : Window
                 (float)Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream));
             // request.playSpeed = float.Parse(ViewerSpeed.Text);
             // 将maimaiDX速度换算为View中的单位速度 MajSpeed = 107.25 / (71.4184491 * (MaiSpeed + 0.9975) ^ -0.985558604)
-            request.noteSpeed = editorSetting!.playSpeed;
-            request.touchSpeed = editorSetting!.touchSpeed;
-            request.backgroundCover = editorSetting!.backgroundCover;
-            request.comboStatusType = editorSetting!.comboStatusType;
+            request.noteSpeed = editorSetting!.PlaySpeed;
+            request.touchSpeed = editorSetting!.TouchSpeed;
+            request.backgroundCover = editorSetting!.BackgroundCover;
+            request.comboStatusType = editorSetting!.ComboStatusType;
             request.audioSpeed = GetPlaybackSpeed();
             request.smoothSlideAnime = editorSetting!.SmoothSlideAnime;
-            request.editorPlayMethod = editorSetting.editorPlayMethod;
+            request.editorPlayMethod = editorSetting.EditorPlayMethod;
+            request.judgeDisplayMode = editorSetting!.judgeDisplayMode;
         });
 
         json = JsonConvert.SerializeObject(request);
