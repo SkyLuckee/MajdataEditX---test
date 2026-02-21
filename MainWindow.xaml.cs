@@ -733,7 +733,8 @@ public partial class MainWindow : Window
         soundSetting.Close();
         //if (bpmtap != null) { bpmtap.Close(); }
         //if (muriCheck != null) { muriCheck.Close(); }
-        //SaveSetting();
+        //SaveSetting(); 
+        SaveEditorSetting(); //改了字体大小的话
 
         Bass.BASS_ChannelStop(bgmStream);
         Bass.BASS_StreamFree(bgmStream);
