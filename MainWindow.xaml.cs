@@ -1215,7 +1215,7 @@ public partial class MainWindow : Window
         chartChangeTimer.Start();
     }
 
-    private void FumenContent_MouseWheel(object sender, MouseWheelEventArgs e)
+    private void FumenContent_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (Keyboard.Modifiers == ModifierKeys.Control)
         {
@@ -1225,6 +1225,8 @@ public partial class MainWindow : Window
                 editorSetting!.FontSize = (float)size;
                 FumenContent.FontSize = size;
             }
+
+            e.Handled = true;
         }
     }
 
