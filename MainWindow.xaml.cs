@@ -22,6 +22,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using Un4seen.Bass;
 using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
@@ -449,7 +450,7 @@ public partial class MainWindow : Window
                         var xRight = x + (float)(noteD.HoldTime / step) * linewidth;
 
                         //1h[0:1]
-                        if (!float.IsNormal(xRight)) xRight = ushort.MaxValue;
+                        if (!float.IsNormal(xRight) || xRight > ushort.MaxValue) xRight = ushort.MaxValue;
                         if (xRight - x < 1f) xRight = x + 5;
                         graphics.DrawLine(pen, x, y, xRight, y);
 
@@ -506,7 +507,7 @@ public partial class MainWindow : Window
                         var xSlide = (float)(noteD.SlideStartTime / step - startindex) * linewidth;
                         var xSlideRight = (float)(noteD.SlideTime / step) * linewidth + xSlide;
 
-                        if (!float.IsNormal(xSlideRight)) xSlideRight = ushort.MaxValue;
+                        if (!float.IsNormal(xSlideRight) || xSlideRight > ushort.MaxValue) xSlideRight = ushort.MaxValue;
                         if (!float.IsNormal(xSlide)) xSlide = ushort.MaxValue;
 
                         graphics.DrawLine(pen, xSlide, y, xSlideRight, y);
