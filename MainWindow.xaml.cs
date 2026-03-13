@@ -1144,7 +1144,7 @@ public partial class MainWindow : Window
     }
     #endregion
 
-    #region RichTextbox events
+    #region Textbox events
 
     private async void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
@@ -1200,7 +1200,7 @@ public partial class MainWindow : Window
 
     private async void FumenContent_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (GetRawFumenText() == "" || IsLoading) return;
+        if (IsLoading) return;
         SetSavedState(false);
         await SyncChartServer(); //立马同步，用了diff的原因，没那么卡
 
