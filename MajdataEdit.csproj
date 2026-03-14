@@ -63,6 +63,7 @@
         </ContentWithTargetPath>
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\MajSimai.Extensions\MajSimai.Extensions\MajSimai.Extensions.csproj" />
       <ProjectReference Include="..\MajSimaiX\MajSimai.csproj" />
     </ItemGroup>
     <ItemGroup>

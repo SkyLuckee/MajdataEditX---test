@@ -2,7 +2,6 @@
 using MajdataEdit.AutoSaveModule;
 using MajdataEdit.ChartShare;
 using MajdataEdit.MaiMuriDX;
-using MajdataEdit.SyntaxModule;
 using MajdataEdit.Utils;
 using MajSimai;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -22,7 +21,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 using Un4seen.Bass;
 using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
@@ -929,17 +927,11 @@ public partial class MainWindow : Window
         soundSetting.ShowDialog();
     }
 
-    private void SyntaxCheckButton_Click(object sender, RoutedEventArgs e)
+    private async void SyntaxCheckButton_Click(object sender, EventArgs e)
     {
-        try
+        if (await SyntaxCheck())
         {
-            SyntaxChecker.Scan(GetRawFumenText());
-            set_err_count(SyntaxChecker.GetErrorCount());
-            Dispatcher.Invoke(() => { ShowSyntaxError(); });
-        }
-        catch
-        {
-            set_err_count(GetLocalizedString("InternalErr"));
+            await Dispatcher.Invoke(async () => { await ShowSyntaxErrorAsync(); });
         }
     }
 
@@ -948,20 +940,6 @@ public partial class MainWindow : Window
         LaunchMaiMuriDX window = new(new RunArg(GetRawFumenText(), float.Parse(OffsetTextBox.Text), audioDir, false));
         window.Owner = this;
         window.Show();
-    }
-
-    private void SyntaxCheckButton_Click(object sender, MouseButtonEventArgs e)
-    {
-        try
-        {
-            SyntaxChecker.Scan(GetRawFumenText());
-            set_err_count(SyntaxChecker.GetErrorCount());
-            Dispatcher.Invoke(() => { ShowSyntaxError(); });
-        }
-        catch
-        {
-            set_err_count(GetLocalizedString("InternalErr"));
-        }
     }
 
     private void MenuItem_EditorSetting_Click(object? sender, RoutedEventArgs e)

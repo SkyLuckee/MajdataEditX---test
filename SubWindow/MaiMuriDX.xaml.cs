@@ -15,12 +15,12 @@ public partial class LaunchMaiMuriDX : Window
         RunArg = runArg;
     }
 
-    private void StartCheck_Button_Click(object sender, RoutedEventArgs e)
+    private async void StartCheck_Button_Click(object sender, RoutedEventArgs e)
     {
         try
         {
             LaunchCheck();
-            ((MainWindow)Owner).ShowMuriDXError(this);
+            await ((MainWindow)Owner).ShowMuriDXErrorAsync(this);
         }
         catch (Exception ex)
         {
