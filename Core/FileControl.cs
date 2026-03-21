@@ -281,7 +281,7 @@ public partial class MainWindow : Window
             File.WriteAllText(path + "/maidata.txt",
                 "&title=" + GetLocalizedString("SetTitle") + "\n" +
                 "&artist=" + GetLocalizedString("SetArtist") + "\n" +
-                "&des=" + GetLocalizedString("SetDes") + "\n" +
+                // "&des=" + GetLocalizedString("SetDes") + "\n" +
                 "&first=0\n");
     }
 
