@@ -115,7 +115,7 @@ public partial class MainWindow : Window
         ReadSetting();
         SetRawFumenText(SimaiProcess.fumens[selectedDifficulty]);
         await SimaiProcess.Serialize(GetRawFumenText());
-        SeekTextFromTime();
+        SeekTextFromCurTime();
         OffsetTextBox.Text = SimaiProcess.simaiFile.Offset.ToString();
 
         AutoSaveManager.Of().SetAutoSaveEnable(true);
@@ -217,7 +217,7 @@ public partial class MainWindow : Window
             LevelSelector.SelectedIndex = selectedDifficulty;
             OffsetTextBox.Text = SimaiProcess.simaiFile.Offset.ToString();
 
-            SeekTextFromTime();
+            SeekTextFromCurTime();
 
 
             AutoSaveManager.Of().SetAutoSaveEnable(false);

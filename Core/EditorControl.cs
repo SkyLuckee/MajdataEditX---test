@@ -155,18 +155,22 @@ public partial class MainWindow : Window
             editorSetting.RenderMode = 1;
 
         LocalizeDictionary.Instance.Culture = new CultureInfo(editorSetting.Language);
+
+        // 用户快捷键设置
         AddGesture(editorSetting.PlayPauseKey, "PlayAndPause");
         AddGesture(editorSetting.PlayStopKey, "StopPlaying");
         AddGesture(editorSetting.SaveKey, "SaveFile");
         AddGesture(editorSetting.SendViewerKey, "SendToView");
         AddGesture(editorSetting.IncreasePlaybackSpeedKey, "IncreasePlaybackSpeed");
         AddGesture(editorSetting.DecreasePlaybackSpeedKey, "DecreasePlaybackSpeed");
-        AddGesture("Ctrl+f", "Find");
         AddGesture(editorSetting.MirrorLeftRightKey, "MirrorLR");
         AddGesture(editorSetting.MirrorUpDownKey, "MirrorUD");
         AddGesture(editorSetting.Mirror180Key, "Mirror180");
         AddGesture(editorSetting.Mirror45Key, "Mirror45");
         AddGesture(editorSetting.MirrorCcw45Key, "MirrorCcw45");
+        // 内置快捷键
+        AddGesture("Ctrl+f", "Find");
+
         FumenContent.FontSize = editorSetting.FontSize;
 
         ViewerCover.Content = editorSetting.BackgroundCover.ToString();
@@ -174,6 +178,8 @@ public partial class MainWindow : Window
         ViewerTouchSpeed.Content = editorSetting.TouchSpeed.ToString("F1");
 
         chartChangeTimer.Interval = editorSetting.ChartRefreshDelay; // 设置更新延迟
+
+        SetFullKeyboardMode(editorSetting.FullKeyboardMode);
 
         SaveEditorSetting(); // 覆盖旧版本setting
     }
@@ -193,7 +199,7 @@ public partial class MainWindow : Window
         delta = delta * deltatime / (Width / 2);
         var time = Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream));
         SetBgmPosition(time + delta);
-        SeekTextFromTime();
+        SeekTextFromCurTime();
         Task.Run(() => draw_wave());
     }
 
@@ -365,6 +371,20 @@ public partial class MainWindow : Window
         }
 
         return GetWindowsTitleString() + " - " + info;
+    }
+
+    private void SetFullKeyboardMode(bool enabled)
+    {
+        if (enabled)
+        {
+            editorSetting!.FullKeyboardMode = true;
+            SwitchFullKeyboardMode.Header = GetLocalizedString("SwitchFullKeyboardMode") + "   ✔";
+        }
+        else
+        {
+            editorSetting!.FullKeyboardMode = false;
+            SwitchFullKeyboardMode.Header = GetLocalizedString("SwitchFullKeyboardMode");
+        }
     }
 
     //////////////////// Helper Functions ////////////////////

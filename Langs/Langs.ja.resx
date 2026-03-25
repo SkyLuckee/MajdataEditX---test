@@ -263,6 +263,18 @@ Critical Perfect: ±{5:0.0} ms，Sensors:
   <data name="JudgeDisplay" xml:space="preserve">
     <value>Judge Display</value>
   </data>
+  <data name="JudgeDisplayNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="JudgeDisplayFastLate" xml:space="preserve">
+    <value>Fast/Late Only</value>
+  </data>
+  <data name="JudgeDisplayLevel" xml:space="preserve">
+    <value>Level Only</value>
+  </data>
+  <data name="JudgeDisplayBoth" xml:space="preserve">
+    <value>Both</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Viewを閉しますか？</value>
   </data>
@@ -656,16 +668,7 @@ Open Browser to download latest update of Majdata?</value>
   <data name="UserLeft" xml:space="preserve">
     <value>{0} Left Chart Share {1}</value>
   </data>
-  <data name="JudgeDisplayNone" xml:space="preserve">
-    <value>None</value>
-  </data>
-  <data name="JudgeDisplayFastLate" xml:space="preserve">
-    <value>Fast/Late Only</value>
-  </data>
-  <data name="JudgeDisplayLevel" xml:space="preserve">
-    <value>Level Only</value>
-  </data>
-  <data name="JudgeDisplayBoth" xml:space="preserve">
-    <value>Both</value>
+  <data name="SwitchFullKeyboardMode" xml:space="preserve">
+    <value>Full-Keyboard Mode</value>
   </data>
 </root>

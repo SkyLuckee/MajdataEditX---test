@@ -16,6 +16,7 @@ using System.Media;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -1127,15 +1128,19 @@ public partial class MainWindow : Window
     private async void FumenContent_SelectionChanged(object sender, RoutedEventArgs e)
     {
         if (IsLoading) return;
+
         NoteNowText.Content = 
             (FumenContent.Text[..FumenContent.CaretIndex] //.Replace("\r", "") //没区别
                                       .Count(o => o == '\n') + 1) + " 行";
+
         if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
             return;
 
         await SimaiProcess.Serialize(GetRawFumenText());
 
-        var timings = SimaiProcess.timingLists[selectedDifficulty] ?? new();
+        var timings = SimaiProcess.timingLists[selectedDifficulty];
+        if (SimaiProcess.timingLists[selectedDifficulty] == null) return;
+
         double time = 0d;
         foreach (var timing in timings)
         {
@@ -1156,7 +1161,7 @@ public partial class MainWindow : Window
                 Keyboard.IsKeyDown(Key.Down)
             )) || needChangeTime)
         {
-            if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING) Pause();
+            if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING) Stop();
             SetBgmPosition(time);
             needChangeTime = false;
         }
@@ -1164,6 +1169,7 @@ public partial class MainWindow : Window
         //Console.WriteLine("SelectionChanged: " + GetRawFumenPosition());
         CursorTime = (float)time;
         if (!isPlaying) draw_wave();
+
         if (!isFinding)
         {
             findPosition = FumenContent.CaretIndex; //主动点击时刷新一下
@@ -1222,12 +1228,82 @@ public partial class MainWindow : Window
 
     private void FumenContent_OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        // 按下Insert键，同时未按下任何组合键，切换覆盖模式
-        if (e.Key == Key.Insert && Keyboard.Modifiers == ModifierKeys.None)
+        if (Keyboard.Modifiers == ModifierKeys.Control)
         {
-            SwitchFumenOverwriteMode();
-            e.Handled = true;
+            if (e.Key == Key.Up)
+            {
+                EditingCommands.MoveUpByLine.Execute(null, (IInputElement)sender);
+                e.Handled = true;
+                return;
+            }
+            else if (e.Key == Key.Down)
+            {
+                EditingCommands.MoveDownByLine.Execute(null, (IInputElement)sender);
+                e.Handled = true;
+                return;
+            }
+            else if (e.Key == Key.Left)
+            {
+                EditingCommands.MoveLeftByCharacter.Execute(null, (IInputElement)sender);
+                e.Handled = true;
+                return;
+            }
+            else if (e.Key == Key.Right)
+            {
+                EditingCommands.MoveRightByCharacter.Execute(null, (IInputElement)sender);
+                e.Handled = true;
+                return;
+            }
         }
+        else if (Keyboard.Modifiers == ModifierKeys.None)
+        {
+            if (e.Key == Key.Insert)
+            {
+                SwitchFumenOverwriteMode();
+                e.Handled = true;
+                return;
+            }
+            else
+            {
+                if (editorSetting!.FullKeyboardMode)
+                {
+                    switch (e.Key)
+                    {
+                        case Key.L:
+                            Play();
+                            break;
+                        case Key.K:
+                            Pause();
+                            break;
+                        case Key.J:
+                            Stop();
+                            break;
+                        case Key.M:
+                            SeekTextFromNoteOffset(1);
+                            break;
+                        case Key.N:
+                            SeekTextFromNoteOffset(-1);
+                            break;
+                        case Key.T:
+                            SetBgmPosition(Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream) - Bass.BASS_ChannelSeconds2Bytes(bgmStream, 3)));
+                            break;
+                        case Key.Y:
+                            SetBgmPosition(Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream) + Bass.BASS_ChannelSeconds2Bytes(bgmStream, 3)));
+                            break;
+                        case Key.O:
+                            if ((bool)FollowPlayCheck.IsChecked!) FollowPlayCheck.IsChecked = false;
+                            else FollowPlayCheck.IsChecked = true;
+                            break;
+                        default:
+                            base.OnPreviewKeyDown(e);
+                            return; //不处理其他按键
+                    }
+                    e.Handled = true;
+                    return;
+                }
+            }
+        }
+        base.OnPreviewKeyDown(e);
     }
 
     private void FumenContent_ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -1311,5 +1387,11 @@ public partial class MainWindow : Window
             6 => 2f,
             _ => 1f
         };
+    }
+
+    private void SwitchFullKeyboardMode_Click(object sender, RoutedEventArgs e)
+    {
+        if (editorSetting!.FullKeyboardMode) SetFullKeyboardMode(false);
+        else SetFullKeyboardMode(true);
     }
 }

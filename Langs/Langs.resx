@@ -267,4 +267,7 @@
   <data name="JudgeDisplayBoth" xml:space="preserve">
     <value />
   </data>
+  <data name="SwitchFullKeyboardMode" xml:space="preserve">
+    <value />
+  </data>
 </root>

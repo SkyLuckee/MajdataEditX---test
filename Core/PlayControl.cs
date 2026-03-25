@@ -31,9 +31,8 @@ public partial class MainWindow : Window
     {
         //if (Op_Button.IsEnabled == false) return;  //?
 
-        if (lastEditorState == EditorControlMethod.Start || playMethod != PlayMethod.Normal)
-            if (!RequestStop())
-                return;
+        if (lastEditorState == EditorControlMethod.Start)
+            return;
 
         FumenContent.Focus();
         SaveFumen(false);
@@ -131,6 +130,8 @@ public partial class MainWindow : Window
 
     private void Pause()
     {
+        if (lastEditorState == EditorControlMethod.Stop) return;
+
         Op_Button.IsEnabled = true;
         isPlaying = false;
         isPlan2Stop = false;
@@ -197,8 +198,9 @@ public partial class MainWindow : Window
 
     private void SetBgmPosition(double time)
     {
-        if (lastEditorState == EditorControlMethod.Pause) RequestStop();
+        if (lastEditorState != EditorControlMethod.Stop) Stop();
         Bass.BASS_ChannelSetPosition(bgmStream, time);
+        draw_wave();
     }
 
 

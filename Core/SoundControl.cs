@@ -141,7 +141,7 @@ public partial class MainWindow
                     if ((bool)FollowPlayCheck.IsChecked!)
                     {
                         CursorTime = (float)nearestTime;
-                        SeekTextFromTime();
+                        SeekTextFromCurTime();
                     }
                 });
             }

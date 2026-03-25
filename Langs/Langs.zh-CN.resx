@@ -263,6 +263,18 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="JudgeDisplay" xml:space="preserve">
     <value>判定显示</value>
   </data>
+  <data name="JudgeDisplayNone" xml:space="preserve">
+    <value>不显示</value>
+  </data>
+  <data name="JudgeDisplayFastLate" xml:space="preserve">
+    <value>只显示Fast / Late</value>
+  </data>
+  <data name="JudgeDisplayLevel" xml:space="preserve">
+    <value>只显示判定等级</value>
+  </data>
+  <data name="JudgeDisplayBoth" xml:space="preserve">
+    <value>都显示</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -621,16 +633,7 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="UserLeft" xml:space="preserve">
     <value>{0} 离开了谱面共享 {1}</value>
   </data>
-  <data name="JudgeDisplayNone" xml:space="preserve">
-    <value>不显示</value>
-  </data>
-  <data name="JudgeDisplayFastLate" xml:space="preserve">
-    <value>只显示Fast / Late</value>
-  </data>
-  <data name="JudgeDisplayLevel" xml:space="preserve">
-    <value>只显示判定等级</value>
-  </data>
-  <data name="JudgeDisplayBoth" xml:space="preserve">
-    <value>都显示</value>
+  <data name="SwitchFullKeyboardMode" xml:space="preserve">
+    <value>全键盘模式</value>
   </data>
 </root>
