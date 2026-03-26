@@ -75,7 +75,7 @@ public partial class MainWindow : Window
 
     public void SeekTextFromNoteOffset(int offset)
     {
-        var timingList = SimaiProcess.timingLists[selectedDifficulty];
+        var timingList = SimaiProcess.noteLists[selectedDifficulty];
         if (timingList.Count == 0) return;
 
         var targetPos = GetRawFumenPosition();
@@ -87,8 +87,7 @@ public partial class MainWindow : Window
         if (indexed.Index + offset < timingList.Count)
         {
             var theNote = timingList[indexed.Index + offset];
-            if (indexed.Index + offset == timingList.Count - 1) SetRawFumenPosition(theNote.RawTextPosition - 1);
-            else SetRawFumenPosition(theNote.RawTextPosition);
+            SetRawFumenPosition(theNote.RawTextPosition);
         }
     }
 

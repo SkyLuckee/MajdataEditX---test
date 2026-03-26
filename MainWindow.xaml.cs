@@ -4,6 +4,7 @@ using MajdataEdit.ChartShare;
 using MajdataEdit.MaiMuriDX;
 using MajdataEdit.Utils;
 using MajSimai;
+using MajSimai.Extensions.Converter;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;
 using Python.Runtime;
@@ -67,6 +68,7 @@ public partial class MainWindow : Window
         SyntaxCheckButton.IsEnabled = false;
         MaiMuriDX.IsEnabled = false;
         Menu_ToggleChartShare.IsEnabled = false;
+        ConvertToFcpxml.IsEnabled = false;
 
         // window title
         TheWindow.Title = GetWindowsTitleString();
@@ -98,6 +100,7 @@ public partial class MainWindow : Window
             MaiMuriDX.IsEnabled = true;
             MapInfo.IsEnabled = true;
             Menu_ToggleChartShare.IsEnabled = true;
+            ConvertToFcpxml.IsEnabled = true;
 
             // limit for editor
             LevelSelector.IsEnabled = true;
@@ -1270,12 +1273,9 @@ public partial class MainWindow : Window
                     switch (e.Key)
                     {
                         case Key.L:
-                            Play();
+                            TogglePlayAndPause();
                             break;
                         case Key.K:
-                            Pause();
-                            break;
-                        case Key.J:
                             Stop();
                             break;
                         case Key.M:
@@ -1393,5 +1393,72 @@ public partial class MainWindow : Window
     {
         if (editorSetting!.FullKeyboardMode) SetFullKeyboardMode(false);
         else SetFullKeyboardMode(true);
+    }
+
+    private async void ConvertToFcpxml_Click(object sender, RoutedEventArgs e)
+    {
+        FcpxmlFpsPopup.IsOpen = true;
+    }
+
+    private async void ConfirmFps_Click(object sender, RoutedEventArgs e)
+    {
+        string input = FcpxmlFpsBox.Text.Trim();
+        if (!int.TryParse(input, out int fps))
+        {
+            // 可以加个简单的样式提示输入非法
+            return;
+        }
+
+        // 先关闭 Popup 提升用户体验
+        FcpxmlFpsPopup.IsOpen = false;
+
+        // 接下来是耗时逻辑
+        try
+        {
+            await SimaiProcess.Serialize(GetRawFumenText());
+
+            var dialog = new SaveFileDialog
+            {
+                Filter = "Final Cut Pro XML|*.fcpxml",
+                FileName = $"{SimaiProcess.simaiFile.Title}_{SimaiProcess.GetDifficultyText(selectedDifficulty)}.fcpxml"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                // 使用 Task.Run 运行转换逻辑，避免 UI 卡死
+                await Task.Run(() =>
+                {
+                    Simai2FCPXML.Convert(
+                        SimaiProcess.OriginNoteLists[selectedDifficulty],
+                        dialog.FileName,
+                        SimaiProcess.simaiFile.Offset,
+                        fps);
+                });
+
+                // 可以加个通知：转换完成
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error: {ex.Message}");
+        }
+    }
+
+    private void FcpxmlFpsBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            ConfirmFps_Click(this, new RoutedEventArgs());
+        }
+        else if (e.Key == Key.Escape)
+        {
+            FcpxmlFpsPopup.IsOpen = false;
+        }
+    }
+
+    private void FcpxmlFpsPopup_Opened(object sender, EventArgs e)
+    {
+        FcpxmlFpsBox.Focus();
+        FcpxmlFpsBox.SelectAll();
     }
 }

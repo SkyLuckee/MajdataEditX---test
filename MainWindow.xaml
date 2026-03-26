@@ -130,6 +130,9 @@
                     <Separator />
                     <MenuItem x:Name="SwitchFullKeyboardMode" Header="{lex:Loc SwitchFullKeyboardMode}" 
                               Click="SwitchFullKeyboardMode_Click" />
+                    <Separator />
+                    <MenuItem x:Name="ConvertToFcpxml" Header="{lex:Loc ConvertToFcpxml}" Click="ConvertToFcpxml_Click"
+                              IsEnabled="False"/>
                 </MenuItem>
                 <MenuItem Header="Majnet" Click="MenuItem_Majnet_Click"
                       Foreground="{DynamicResource ButtonForeground}" Template="{DynamicResource DarkMenuItem}" />
@@ -340,5 +343,40 @@
                 <TextBlock x:Name="ShareStatus" Foreground="{StaticResource HelperForeground}"/>
             </StatusBarItem>
         </StatusBar>
+
+        <Popup x:Name="FcpxmlFpsPopup"
+               Placement="Center" 
+               PlacementTarget="{Binding ElementName=MainMenu}"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               Opened="FcpxmlFpsPopup_Opened">
+
+            <Border Background="{DynamicResource ButtonsBackground}"
+                    BorderBrush="{DynamicResource ButtonForeground}"
+                    BorderThickness="1"
+                    Padding="12"
+                    CornerRadius="8">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Input FPS" 
+                               HorizontalAlignment="Center"
+                               FontWeight="Bold"
+                               Margin="0,0,0,10"
+                               Foreground="{DynamicResource ButtonForeground}"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox x:Name="FcpxmlFpsBox"
+                                 Width="80"
+                                 Height="25"
+                                 VerticalContentAlignment="Center"
+                                 Margin="0,0,8,0"
+                                 Text="60" KeyDown="FcpxmlFpsBox_KeyDown" />
+
+                        <Button Content="OK"
+                                Padding="10,2"
+                                Click="ConfirmFps_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
     </Grid>
 </Window>

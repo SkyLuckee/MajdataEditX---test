@@ -275,6 +275,9 @@ Critical Perfect: ±{5:0.0} ms，Sensors:
   <data name="JudgeDisplayBoth" xml:space="preserve">
     <value>Both</value>
   </data>
+  <data name="SwitchFullKeyboardMode" xml:space="preserve">
+    <value>Full-Keyboard Mode</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Close Viewer?</value>
   </data>
@@ -640,7 +643,7 @@ Click OK to start render.</value>
   <data name="UserLeft" xml:space="preserve">
     <value>{0} Left Chart Share {1}</value>
   </data>
-  <data name="SwitchFullKeyboardMode" xml:space="preserve">
-    <value>Full-Keyboard Mode</value>
+  <data name="ConvertToFcpxml" xml:space="preserve">
+    <value>Convert To FCPXML</value>
   </data>
 </root>

@@ -275,6 +275,9 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="JudgeDisplayBoth" xml:space="preserve">
     <value>都显示</value>
   </data>
+  <data name="SwitchFullKeyboardMode" xml:space="preserve">
+    <value>全键盘模式</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -633,7 +636,7 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="UserLeft" xml:space="preserve">
     <value>{0} 离开了谱面共享 {1}</value>
   </data>
-  <data name="SwitchFullKeyboardMode" xml:space="preserve">
-    <value>全键盘模式</value>
+  <data name="ConvertToFcpxml" xml:space="preserve">
+    <value>转换为FCPXML文件</value>
   </data>
 </root>
