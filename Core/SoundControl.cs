@@ -138,7 +138,7 @@ public partial class MainWindow
                 //
                 Dispatcher.Invoke(() =>
                 {
-                    if ((bool)FollowPlayCheck.IsChecked!)
+                    if (FollowPlayCheck.IsChecked == true)
                     {
                         CursorTime = (float)nearestTime;
                         SeekTextFromCurTime();

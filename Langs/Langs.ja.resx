@@ -278,6 +278,9 @@ Critical Perfect: ±{5:0.0} ms，Sensors:
   <data name="SwitchFullKeyboardMode" xml:space="preserve">
     <value>Full-Keyboard Mode</value>
   </data>
+  <data name="ConvertToFcpxml" xml:space="preserve">
+    <value>Convert To FCPXML</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>Viewを閉しますか？</value>
   </data>
@@ -671,7 +674,13 @@ Open Browser to download latest update of Majdata?</value>
   <data name="UserLeft" xml:space="preserve">
     <value>{0} Left Chart Share {1}</value>
   </data>
-  <data name="ConvertToFcpxml" xml:space="preserve">
-    <value>Convert To FCPXML</value>
+  <data name="MediaQuickProcess" xml:space="preserve">
+    <value>Media Process Quickly</value>
+  </data>
+  <data name="NoMp4Found" xml:space="preserve">
+    <value>no pv.mp4/mv.mp4/bg.mp4 found. Continue?</value>
+  </data>
+  <data name="ExtractMp3" xml:space="preserve">
+    <value>New Chart From Video</value>
   </data>
 </root>

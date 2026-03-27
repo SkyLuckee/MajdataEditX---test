@@ -127,7 +127,7 @@ public partial class Infomation : Window
         {
             Filter = "*.mp3, *.ogg|*.mp3;*.ogg"
         };
-        if ((bool)openFileDialog.ShowDialog()!) ReadMetadata(openFileDialog.FileName);
+        if (openFileDialog.ShowDialog() == true) ReadMetadata(openFileDialog.FileName);
     }
 
     private void SaltImage_MouseDown(object sender, MouseButtonEventArgs e)
@@ -137,7 +137,7 @@ public partial class Infomation : Window
             InitialDirectory = "",
             Filter = "图片|*.png;*.jpg"
         };
-        if ((bool)openFileDialog.ShowDialog()!)
+        if (openFileDialog.ShowDialog() == true)
         {
             var data = File.ReadAllBytes(openFileDialog.FileName);
             var info = new FileInfo(openFileDialog.FileName);

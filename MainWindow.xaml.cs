@@ -5,6 +5,7 @@ using MajdataEdit.MaiMuriDX;
 using MajdataEdit.Utils;
 using MajSimai;
 using MajSimai.Extensions.Converter;
+using MajSimai.Extensions.MediaProcessor;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Win32;
 using Python.Runtime;
@@ -69,6 +70,7 @@ public partial class MainWindow : Window
         MaiMuriDX.IsEnabled = false;
         Menu_ToggleChartShare.IsEnabled = false;
         ConvertToFcpxml.IsEnabled = false;
+        MediaQuickProcess.IsEnabled = false;
 
         // window title
         TheWindow.Title = GetWindowsTitleString();
@@ -101,6 +103,7 @@ public partial class MainWindow : Window
             MapInfo.IsEnabled = true;
             Menu_ToggleChartShare.IsEnabled = true;
             ConvertToFcpxml.IsEnabled = true;
+            MediaQuickProcess.IsEnabled = true;
 
             // limit for editor
             LevelSelector.IsEnabled = true;
@@ -131,6 +134,8 @@ public partial class MainWindow : Window
 
             // window title
             TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title + " Share");
+
+            ConvertToFcpxml.IsEnabled = true;
         }
         else
         {
@@ -149,6 +154,8 @@ public partial class MainWindow : Window
 
             // window title
             TheWindow.Title = GetWindowsTitleString(SimaiProcess.simaiFile.Title);
+
+            ConvertToFcpxml.IsEnabled = false;
         }
     }
     public void set_host(bool value)
@@ -792,7 +799,7 @@ public partial class MainWindow : Window
         {
             Filter = "track.mp3, track.ogg|track.mp3;track.ogg"
         };
-        if ((bool)openFileDialog.ShowDialog()!)
+        if (openFileDialog.ShowDialog() == true)
         {
             var fileInfo = new FileInfo(openFileDialog.FileName);
             CreateNewFumen(fileInfo.DirectoryName!);
@@ -807,7 +814,7 @@ public partial class MainWindow : Window
         {
             Filter = "maidata.txt|maidata.txt"
         };
-        if ((bool)openFileDialog.ShowDialog()!)
+        if (openFileDialog.ShowDialog() == true)
         {
             var fileInfo = new FileInfo(openFileDialog.FileName);
             await InitFromFile(fileInfo.DirectoryName!);
@@ -1136,7 +1143,7 @@ public partial class MainWindow : Window
             (FumenContent.Text[..FumenContent.CaretIndex] //.Replace("\r", "") //没区别
                                       .Count(o => o == '\n') + 1) + " 行";
 
-        if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && (bool)FollowPlayCheck.IsChecked!)
+        if (Bass.BASS_ChannelIsActive(bgmStream) == BASSActive.BASS_ACTIVE_PLAYING && FollowPlayCheck.IsChecked == true)
             return;
 
         await SimaiProcess.Serialize(GetRawFumenText());
@@ -1291,7 +1298,7 @@ public partial class MainWindow : Window
                             SetBgmPosition(Bass.BASS_ChannelBytes2Seconds(bgmStream, Bass.BASS_ChannelGetPosition(bgmStream) + Bass.BASS_ChannelSeconds2Bytes(bgmStream, 3)));
                             break;
                         case Key.O:
-                            if ((bool)FollowPlayCheck.IsChecked!) FollowPlayCheck.IsChecked = false;
+                            if (FollowPlayCheck.IsChecked == true) FollowPlayCheck.IsChecked = false;
                             else FollowPlayCheck.IsChecked = true;
                             break;
                         default:
@@ -1460,5 +1467,64 @@ public partial class MainWindow : Window
     {
         FcpxmlFpsBox.Focus();
         FcpxmlFpsBox.SelectAll();
+    }
+
+    private async void MediaQuickProcess_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var bpm = SimaiProcess.OriginTimingLists[selectedDifficulty][0].Bpm;
+            var offset = SimaiProcess.simaiFile.Offset;
+
+            TrackProcessor.AdjustMediaTime(converterPath, audioDir, 60 / bpm * 4, offset);
+
+            string videoPath = "";
+            foreach (var name in new[]{ "pv.mp4", "mv.mp4", "bg.mp4" })
+            {
+                var dir = Path.Combine(maidataDir, name);
+                if (File.Exists(dir))
+                {
+                    videoPath = dir;
+                    break;
+                }
+            }
+            if (videoPath == "")
+            {
+                var res = MessageBox.Show(GetLocalizedString("NoMp4Found"), GetLocalizedString("Warn"), MessageBoxButton.YesNo);
+                if (res == MessageBoxResult.No) return;
+            }
+
+            TrackProcessor.AdjustMediaTime(converterPath, videoPath, 60 / bpm * 4, offset);
+
+            OffsetTextBox.Text = "0";
+            SaveFumen(true);
+            await Task.Delay(30); //wait for others finish
+            await InitFromFile(maidataDir);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Adjust failed. reason: {ex.Message}", GetLocalizedString("Error"));
+        }
+    }
+
+    private async void ExtractMp3_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog()
+        {
+            Filter = "Video Files|*.mp4;*.mkv;*.avi;*.mov;*.flv;*.wmv|All Files|*.*",
+            FileName = maidataDir
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            var file = dialog.FileName;
+            var parent = Path.GetDirectoryName(file)!;
+            var newFile = Path.Combine(parent, "pv.mp4");
+            File.Move(file, newFile);
+            TrackProcessor.ExtractAudio(converterPath, newFile, Path.Combine(parent, "track.mp3"));
+
+            CreateNewFumen(parent);
+            await InitFromFile(parent);
+        }
     }
 }

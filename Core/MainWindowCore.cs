@@ -36,6 +36,8 @@ public partial class MainWindow : Window
     public EditorSetting? editorSetting;
     private bool UpdateCheckLock;
 
+    public string converterPath = Environment.CurrentDirectory + "/MajdataView_Data/StreamingAssets/ffmpeg.exe";
+
     // Fumen
     public static int selectedDifficulty = 0;
 

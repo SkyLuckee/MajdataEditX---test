@@ -297,8 +297,8 @@ public partial class MainWindow : Window
             }
 
             var resJson = JsonConvert.DeserializeObject<JObject>(response)!;
-            var latestVersionString = resJson["tag_name"]!.ToString();
-            var releaseUrl = resJson["html_url"]!.ToString();
+            var latestVersionString = resJson["tag_name"]?.ToString();
+            var releaseUrl = resJson["html_url"]?.ToString();
 
             var latestVersion = SemVersion.Parse(latestVersionString, SemVersionStyles.Any);
 

@@ -131,6 +131,8 @@
                     <MenuItem x:Name="SwitchFullKeyboardMode" Header="{lex:Loc SwitchFullKeyboardMode}" 
                               Click="SwitchFullKeyboardMode_Click" />
                     <Separator />
+                    <MenuItem x:Name="ExtractMp3" Header="{lex:Loc ExtractMp3}" Click="ExtractMp3_Click"  />
+                    <MenuItem x:Name="MediaQuickProcess" Header="{lex:Loc MediaQuickProcess}" Click="MediaQuickProcess_Click" IsEnabled="False" />
                     <MenuItem x:Name="ConvertToFcpxml" Header="{lex:Loc ConvertToFcpxml}" Click="ConvertToFcpxml_Click"
                               IsEnabled="False"/>
                 </MenuItem>
