@@ -51,10 +51,11 @@ public partial class MainWindow : Window
         switch (playMethod)
         {
             case PlayMethod.Record:
+                MessageBox.Show(GetLocalizedString("AskRender"), GetLocalizedString("Attention"));
+                if (lastEditorState != EditorControlMethod.Stop) Stop();
                 Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, originFreq * GetPlaybackSpeed());
                 Bass.BASS_ChannelSetPosition(bgmStream, 0);
                 startAt = DateTime.Now.AddSeconds(5d);
-                MessageBox.Show(GetLocalizedString("AskRender"), GetLocalizedString("Attention"));
                 InternalSwitchWindow(false);
                 generateSoundEffectList(0.0, isOpIncluded);
                 var task = new Task(() => RenderSoundEffect(5d / GetPlaybackSpeed()));
@@ -70,7 +71,6 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                if (lastEditorState != EditorControlMethod.Stop) Stop();
                 if (!RequestPlay(startAt, playMethod)) return;
                 break;
             case PlayMethod.Op:
