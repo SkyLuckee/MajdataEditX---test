@@ -1473,6 +1473,10 @@ public partial class MainWindow : Window
     {
         try
         {
+            if (SimaiProcess.OriginTimingLists[selectedDifficulty].Count == 0)
+            {
+                MessageBox.Show("please enter '(BPM){1},' in the chart first! \n 请先输入 ‘(BPM){1},’ 到谱面中！让编辑器知道你音乐的bpm！", GetLocalizedString("Error"));
+            }
             var bpm = SimaiProcess.OriginTimingLists[selectedDifficulty][0].Bpm;
             var offset = SimaiProcess.simaiFile.Offset;
 

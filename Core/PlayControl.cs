@@ -57,7 +57,7 @@ public partial class MainWindow : Window
                 MessageBox.Show(GetLocalizedString("AskRender"), GetLocalizedString("Attention"));
                 InternalSwitchWindow(false);
                 generateSoundEffectList(0.0, isOpIncluded);
-                var task = new Task(() => renderSoundEffect(5d / GetPlaybackSpeed()));
+                var task = new Task(() => RenderSoundEffect(5d / GetPlaybackSpeed()));
                 try
                 {
                     task.Start();
@@ -70,6 +70,7 @@ public partial class MainWindow : Window
                     return;
                 }
 
+                if (lastEditorState != EditorControlMethod.Stop) Stop();
                 if (!RequestPlay(startAt, playMethod)) return;
                 break;
             case PlayMethod.Op:
