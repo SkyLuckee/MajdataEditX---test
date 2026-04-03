@@ -1338,7 +1338,7 @@ public partial class MainWindow : Window
         var key = e.Key == Key.System ? e.SystemKey : e.Key;
         if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt)
             return false;
-        if (Keyboard.Modifiers == ModifierKeys.None) 
+        if (Keyboard.Modifiers is ModifierKeys.None or ModifierKeys.Shift) 
             return false;
 
         var gesture = new KeyGesture(key, Keyboard.Modifiers);
