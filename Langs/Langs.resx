@@ -282,4 +282,13 @@
   <data name="ExtractMp3" xml:space="preserve">
     <value />
   </data>
+  <data name="InputFPS" xml:space="preserve">
+    <value />
+  </data>
+  <data name="BeatsCount" xml:space="preserve">
+    <value />
+  </data>
+  <data name="FreezeFrame" xml:space="preserve">
+    <value />
+  </data>
 </root>

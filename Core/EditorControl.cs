@@ -392,7 +392,7 @@ public partial class MainWindow : Window
     private void AddGesture(string keyGusture, string command)
     {
         var gesture = (InputGesture)new KeyGestureConverter().ConvertFromString(keyGusture)!;
-        var inputBinding = new InputBinding((ICommand)FumenContent.Resources[command], gesture);
+        var inputBinding = new InputBinding(editorCommands[command], gesture);
         FumenContent.InputBindings.Add(inputBinding);
     }
 

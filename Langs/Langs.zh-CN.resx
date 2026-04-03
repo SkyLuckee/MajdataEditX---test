@@ -281,6 +281,15 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="ConvertToFcpxml" xml:space="preserve">
     <value>转换为FCPXML文件</value>
   </data>
+  <data name="MediaQuickProcess" xml:space="preserve">
+    <value>快速处理谱面媒体</value>
+  </data>
+  <data name="NoMp4Found" xml:space="preserve">
+    <value>找不到pv文件，是否继续？</value>
+  </data>
+  <data name="ExtractMp3" xml:space="preserve">
+    <value>从视频新建谱面</value>
+  </data>
   <data name="AskCloseView" xml:space="preserve">
     <value>要关闭View吗？</value>
   </data>
@@ -639,13 +648,13 @@ CP区间±{5:0.0} ms，相关判定区如下:
   <data name="UserLeft" xml:space="preserve">
     <value>{0} 离开了谱面共享 {1}</value>
   </data>
-  <data name="MediaQuickProcess" xml:space="preserve">
-    <value>快速处理谱面媒体</value>
+  <data name="InputFPS" xml:space="preserve">
+    <value>输入目标帧率</value>
   </data>
-  <data name="NoMp4Found" xml:space="preserve">
-    <value>找不到pv文件，是否继续？</value>
+  <data name="BeatsCount" xml:space="preserve">
+    <value>开头拍数</value>
   </data>
-  <data name="ExtractMp3" xml:space="preserve">
-    <value>从视频新建谱面</value>
+  <data name="FreezeFrame" xml:space="preserve">
+    <value>静帧填充</value>
   </data>
 </root>
