@@ -467,9 +467,10 @@ public partial class MainWindow : Window
                     if (noteD.Type == SimaiNoteType.TouchHold)
                     {
                         pen.Width = 3;
-                        var xDelta = (float)(noteD.HoldTime / step) * linewidth / 4f;
-                        if (!float.IsNormal(xDelta) || xDelta > ushort.MaxValue) xDelta = ushort.MaxValue / 4f;
-                        if (xDelta - x < 1f) xDelta = x + 5;
+                        var xLen = (float)(noteD.HoldTime / step) * linewidth;
+                        if (xLen > ushort.MaxValue) xLen = ushort.MaxValue;
+                        if (xLen < 1f) xLen = 5;
+                        var xDelta = xLen / 4f;
                         //Console.WriteLine("HoldPixel"+ xDelta);
 
                         pen.Color = Color.FromArgb(200, 255, 75, 0);

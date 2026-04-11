@@ -64,11 +64,13 @@ public partial class MainWindow : Window
         if (!File.Exists(audioPath))
         {
             MessageBox.Show(GetLocalizedString("NoTrack"), GetLocalizedString("Error"));
+            set_loading(false);
             return;
         }
         if (!File.Exists(dataPath))
         {
             MessageBox.Show(GetLocalizedString("NoMaidata_txt"), GetLocalizedString("Error"));
+            set_loading(true);
             return;
         }
         maidataDir = path;
