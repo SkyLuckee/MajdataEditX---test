@@ -349,8 +349,7 @@ public partial class MainWindow : Window
             Bass.BASS_StreamFree(bgmDecode);
             var bgmSample = Bass.BASS_SampleLoad(audioDir, 0, 0, 1, BASSFlag.BASS_DEFAULT);
             var bgmInfo = Bass.BASS_SampleGetInfo(bgmSample);
-            var freq = bgmInfo.freq;
-            var sampleCount = (long)(songLength * freq * 2);
+            var sampleCount = bgmInfo.length;
             var bgmRAW = new short[sampleCount];
             Bass.BASS_SampleGetData(bgmSample, bgmRAW);
 

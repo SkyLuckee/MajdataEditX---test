@@ -373,8 +373,6 @@ public partial class MainWindow
         else
             // 如果足够播完 那么就等到BGM结束再停止
             extraTime4AllPerfect = -1;
-
-        //Console.WriteLine(JsonConvert.SerializeObject(waitToBePlayed));
     }
 
     private void RenderSoundEffect(double delaySeconds)
