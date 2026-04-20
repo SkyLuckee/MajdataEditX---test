@@ -1196,7 +1196,9 @@ public partial class MainWindow : Window
 
         //Console.WriteLine("SelectionChanged: " + GetRawFumenPosition());
         CursorTime = (float)time;
-        //if (!isPlaying) draw_wave(); //selection changed 画什么wave
+        if (!isPlaying) draw_wave(); 
+        // //selection changed 画什么wave
+        // 爹你画着吧，我再也不动你了。
 
         if (!isFinding)
         {
@@ -1385,9 +1387,9 @@ public partial class MainWindow : Window
             var newDelta = deltatime + -e.Delta / 100;
             if (newDelta > 1 && newDelta < 10)
                 deltatime = newDelta;
-            draw_wave();
             return;
         }
+
         ScrollWave(-e.Delta);
     }
 
