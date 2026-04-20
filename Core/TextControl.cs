@@ -110,7 +110,7 @@ public partial class MainWindow : Window
     void BuildPrefixRCountIndex()
     {
         var text = FumenContent.Text;
-        if (prefixRCount == null || FumenContent.Text.Length > prefixRCount.Length)
+        if (prefixRCount == null || text.Length + 1 > prefixRCount.Length)
         {
             prefixRCount = new int[text.Length + 1];
         }
