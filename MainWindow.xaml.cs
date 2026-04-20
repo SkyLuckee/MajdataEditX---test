@@ -728,7 +728,7 @@ public partial class MainWindow : Window
         //太快=>异步=>在另外线程调用的原因。。被自己蠢笑啦
         Dispatcher.Invoke(async () =>
         {
-            SyntaxCheck();
+            await SyntaxCheck();
             await SimaiProcess.Serialize(GetRawFumenText());
             draw_wave();
             if (!ErrCount.Content.ToString()!.EndsWith("?"))
@@ -1196,7 +1196,7 @@ public partial class MainWindow : Window
 
         //Console.WriteLine("SelectionChanged: " + GetRawFumenPosition());
         CursorTime = (float)time;
-        if (!isPlaying) draw_wave();
+        //if (!isPlaying) draw_wave(); //selection changed 画什么wave
 
         if (!isFinding)
         {
@@ -1212,19 +1212,10 @@ public partial class MainWindow : Window
 
     private async void FumenContent_TextChanged(object sender, TextChangedEventArgs e)
     {
+        BuildPrefixRCountIndex();
         if (IsLoading) return;
         SetSavedState(false);
         await SyncChartServer(); //立马同步，用了diff的原因，没那么卡
-
-        //间隔太小了不用管 话说为什么是33。
-        //if (chartChangeTimer.Interval < 33)
-        //{
-        //    SimaiProcess.Serialize(GetRawFumenText(), GetRawFumenPosition());
-        //    DrawWave();
-        //    return;
-        //}
-
-        //私以为没必要 真的有人注意过铺面刷新延迟吗。
         chartChangeTimer.Stop();
         chartChangeTimer.Start();
     }

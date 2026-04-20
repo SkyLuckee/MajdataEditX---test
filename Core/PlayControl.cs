@@ -126,7 +126,7 @@ public partial class MainWindow : Window
             return n.RawTextPosition <= GetRawFumenPosition() &&
                    n.RawTextPosition + n.RawContent.Length >= GetRawFumenPosition();
         })?.Timing ?? 0d);
-        draw_wave();
+        //draw_wave();
     }
 
     private void Pause()
@@ -144,7 +144,7 @@ public partial class MainWindow : Window
         waveStopMonitorTimer.Stop();
         visualEffectRefreshTimer.Stop();
         RequestPause();
-        draw_wave();
+        //draw_wave();
     }
 
     private void Stop()
@@ -161,7 +161,7 @@ public partial class MainWindow : Window
         visualEffectRefreshTimer.Stop();
         RequestStop();
         Bass.BASS_ChannelSetPosition(bgmStream, playStartTime);
-        draw_wave();
+        //draw_wave();
     }
 
     private void TogglePlayAndPause(PlayMethod playMethod = PlayMethod.Normal)
