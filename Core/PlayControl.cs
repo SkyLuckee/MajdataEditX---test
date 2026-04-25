@@ -34,6 +34,8 @@ public partial class MainWindow : Window
         if (lastEditorState == EditorControlMethod.Start)
             return;
 
+        if (lastEditorState != EditorControlMethod.Stop) Stop();
+
         FumenContent.Focus();
         SaveFumen(false);
         if (CheckAndStartView()) return;
@@ -52,7 +54,6 @@ public partial class MainWindow : Window
         {
             case PlayMethod.Record:
                 MessageBox.Show(GetLocalizedString("AskRender"), GetLocalizedString("Attention"));
-                if (lastEditorState != EditorControlMethod.Stop) Stop();
                 Bass.BASS_ChannelSetAttribute(bgmStream, BASSAttribute.BASS_ATTRIB_FREQ, originFreq * GetPlaybackSpeed());
                 Bass.BASS_ChannelSetPosition(bgmStream, 0);
                 startAt = DateTime.Now.AddSeconds(5d);
