@@ -1107,7 +1107,7 @@ public partial class MainWindow : Window
         SimaiProcess.levels[selectedDifficulty] = LevelTextBox.Text;
     }
 
-    private async void OffsetTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    private async void OffsetTextBox_LostFocus(object sender, RoutedEventArgs e)
     {
         if (IsLoading) return;
         SetSavedState(false);
@@ -1122,6 +1122,14 @@ public partial class MainWindow : Window
         catch
         {
             SimaiProcess.simaiFile.Offset = 0f;
+        }
+    }
+    private void OffsetTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            FumenContent.Focus();
+            e.Handled = true;
         }
     }
 
